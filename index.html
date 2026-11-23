@@ -1885,8 +1885,8 @@ function stepSimulation(rawDt) {
 <script>
 /* ============================================================================
    PART 3: INTERACTIVE THREE.JS r128 3D SCENE BUILDER & REAL-TIME ANIMATOR
-   Accurate SOM896161129 R4 Geometry · Lufkin ΔZ Offset + CCW→CW Reversal
-   2BCL456/A Slide-Out Rotor Bundle · WHRU Diverter · 10 GPU Particle Streams
+   Full 50% Sectioned Engineering Cutaway across ALL 14 Assemblies
+   Lufkin ΔZ Offset + CCW→CW Reversal · 2BCL456/A Slide-Out Bundle · WHRU · 10 Streams
    ============================================================================ */
 const VIEW3D = {
   ready: false,
@@ -1905,16 +1905,18 @@ const VIEW3D = {
     compBundle: null,
     enclFrontPanels: [],
     enclAllPanels: [],
-    enclCutawayDoors: [],
+    cutCovers: [],       // All front/top removable 50% cutaway covers across ALL 14 parts!
     gbxCover: null,
-    compBarrelCap: null,
+    compBarrelCut: null,
     davitBeam: null,
     whruBlade: null,
     dampers: [],
     coolerFans: [[], [], []],
     ventFans: [[], []],
     asvStems: [],
+    asvPlugs: [],
     valves: {},
+    valveCores: {},
     unitBadges: [],
     dismantleSideObjs: [],
     fireFlames: null,
@@ -1929,7 +1931,7 @@ const VIEW3D = {
   camDist: 17.5,
   targetCam: null,
   enclMode: 'xray',    // solid | xray | hide
-  cutaway: true,
+  cutaway: true,       // true = 50% sectioned internals exposed across ALL 14 equipment items!
   explode: 0,
   showParticles: true,
   showLabels: true,
@@ -1968,7 +1970,7 @@ function initThreeScene() {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.15;
+  renderer.toneMappingExposure = 1.18;
   container.insertBefore(renderer.domElement, container.firstChild);
 
   VIEW3D.scene = scene;
@@ -1978,14 +1980,13 @@ function initThreeScene() {
   VIEW3D.mouse = new THREE.Vector2();
   VIEW3D.camTarget = new THREE.Vector3(-0.3, 2.2, 0.1);
 
-  // Smooth procedural CAD material factory & primitive helpers
   const mats = {};
   const M = (hex, opts = {}) => {
     const key = hex + JSON.stringify(opts);
     if (mats[key]) return mats[key];
     mats[key] = new THREE.MeshStandardMaterial({
       color: hex,
-      metalness: opts.m ?? 0.58,
+      metalness: opts.m ?? 0.56,
       roughness: opts.r ?? 0.36,
       transparent: !!opts.t,
       opacity: opts.o ?? 1.0,
@@ -1995,6 +1996,9 @@ function initThreeScene() {
     });
     return mats[key];
   };
+
+  // Shared Cutaway Wall Section Edge Material (machined bright orange/amber section face!)
+  const MAT_CUT = M(0xd97706, { m: 0.72, r: 0.32, e: 0x451a03, ei: 0.25 });
 
   function smoothMesh(geo, mat, pos, rot, shadow = true) {
     const m = new THREE.Mesh(geo, mat);
@@ -2015,9 +2019,64 @@ function initThreeScene() {
     obj.traverse(ch => { if (ch.isMesh) ch.userData.compId = id; });
   }
 
+  // Helper 1: Vertical 50%-Cutaway Cylinder Vessel (+ toggleable cover half)
+  // openDeg sets center of the OPEN viewing window (0 = +Z front, 90 = +X, 45 = front-right overview)
+  function addHalfVertVessel(parent, r, h, pos, shellHex, openDeg = 20) {
+    const [cx, cy, cz] = pos;
+    const openRad = (openDeg * Math.PI) / 180;
+    const keepStart = openRad + Math.PI * 0.52;
+    const keepLen = Math.PI * 0.96;
+    const coverStart = openRad - Math.PI * 0.52;
+    const coverLen = Math.PI * 1.04;
+
+    const shellMat = M(shellHex, { m: 0.62, r: 0.34, dbl: true });
+    // Permanent Back 50% Cylindrical Wall + Bottom Plate + Back Top Semicircle
+    parent.add(smoothMesh(new THREE.CylinderGeometry(r, r, h, 24, 1, true, keepStart, keepLen), shellMat, [cx, cy, cz]));
+    parent.add(smoothMesh(new THREE.CircleGeometry(r, 24), shellMat, [cx, cy - h / 2, cz], [-Math.PI / 2, 0, 0]));
+    parent.add(smoothMesh(new THREE.CylinderGeometry(r, r, 0.05, 24, 1, false, keepStart, keepLen), shellMat, [cx, cy + h / 2 - 0.025, cz]));
+
+    // Two Vertical Sectioned Cut Rim Strips so wall thickness stands out clearly!
+    [keepStart, keepStart + keepLen].forEach(ang => {
+      const rx = cx + Math.sin(ang) * (r * 0.96);
+      const rz = cz + Math.cos(ang) * (r * 0.96);
+      parent.add(smoothMesh(new THREE.BoxGeometry(0.05, h, 0.06), MAT_CUT, [rx, cy, rz], [0, ang, 0], false));
+    });
+
+    // Removable Front 50% Cover Half (hidden when VIEW3D.cutaway === true)
+    const covMat = M(shellHex, { m: 0.58, r: 0.36 });
+    const cov = smoothMesh(new THREE.CylinderGeometry(r * 1.004, r * 1.004, h, 24, 1, false, coverStart, coverLen), covMat, [cx, cy, cz]);
+    parent.add(cov);
+    VIEW3D.anim.cutCovers.push(cov);
+  }
+
+  // Helper 2: Rectangular 50%-Cutaway Housing (Open Front +Z / Upper-Front, toggleable solid cover!)
+  function addHalfBoxCabinet(parent, w, h, d, pos, wallHex, thickness = 0.07) {
+    const [cx, cy, cz] = pos;
+    const shellMat = M(wallHex, { m: 0.58, r: 0.40, dbl: true });
+    // Back (-Z), Bottom (-Y), Left (-X), Right (+X) + Narrow Cut Rim Trim
+    parent.add(smoothMesh(new THREE.BoxGeometry(w, h, thickness), shellMat, [cx, cy, cz - d / 2 + thickness / 2]));
+    parent.add(smoothMesh(new THREE.BoxGeometry(w, thickness, d), shellMat, [cx, cy - h / 2 + thickness / 2, cz]));
+    parent.add(smoothMesh(new THREE.BoxGeometry(thickness, h, d * 0.58), shellMat, [cx - w / 2 + thickness / 2, cy, cz - d * 0.21]));
+    parent.add(smoothMesh(new THREE.BoxGeometry(thickness, h, d * 0.58), shellMat, [cx + w / 2 - thickness / 2, cy, cz - d * 0.21]));
+    parent.add(smoothMesh(new THREE.BoxGeometry(w, thickness, d * 0.55), shellMat, [cx, cy + h / 2 - thickness / 2, cz - d * 0.225]));
+    // Machined Orange/Amber Cut Rim Highlights on exposed section edges
+    parent.add(smoothMesh(new THREE.BoxGeometry(0.055, h, 0.055), MAT_CUT, [cx - w / 2 + 0.03, cy, cz + d * 0.08], null, false));
+    parent.add(smoothMesh(new THREE.BoxGeometry(0.055, h, 0.055), MAT_CUT, [cx + w / 2 - 0.03, cy, cz + d * 0.08], null, false));
+    parent.add(smoothMesh(new THREE.BoxGeometry(w, 0.055, 0.055), MAT_CUT, [cx, cy + h / 2 - 0.03, cz + d * 0.05], null, false));
+
+    // Removable Front Half Cover Shell (toggles with Cutaway button!)
+    const covGrp = new THREE.Group();
+    covGrp.add(smoothMesh(new THREE.BoxGeometry(w, h, thickness), shellMat, [cx, cy, cz + d / 2 - thickness / 2]));
+    covGrp.add(smoothMesh(new THREE.BoxGeometry(thickness, h, d * 0.44), shellMat, [cx - w / 2 + thickness / 2, cy, cz + d * 0.28]));
+    covGrp.add(smoothMesh(new THREE.BoxGeometry(thickness, h, d * 0.44), shellMat, [cx + w / 2 - thickness / 2, cy, cz + d * 0.28]));
+    covGrp.add(smoothMesh(new THREE.BoxGeometry(w, thickness, d * 0.45), shellMat, [cx, cy + h / 2 - thickness / 2, cz + d * 0.275]));
+    parent.add(covGrp);
+    VIEW3D.anim.cutCovers.push(covGrp);
+  }
+
   // Lighting rig (offshore industrial HDRI-like 4-point)
-  scene.add(new THREE.HemisphereLight(0x8ec5ff, 0x0f172a, 0.72));
-  const dir = new THREE.DirectionalLight(0xfff5e4, 1.38);
+  scene.add(new THREE.HemisphereLight(0x93c5fd, 0x0f172a, 0.85));
+  const dir = new THREE.DirectionalLight(0xfff5e4, 1.42);
   dir.position.set(14, 24, 15);
   dir.castShadow = true;
   dir.shadow.mapSize.set(2048, 2048);
@@ -2026,10 +2085,10 @@ function initThreeScene() {
   dir.shadow.camera.top = 14; dir.shadow.camera.bottom = -14;
   scene.add(dir);
 
-  const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.45);
+  const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.55);
   fillLight.position.set(-14, 10, -12);
   scene.add(fillLight);
-  const rimLight = new THREE.PointLight(0xf97316, 0.75, 22);
+  const rimLight = new THREE.PointLight(0xf97316, 0.72, 22);
   rimLight.position.set(-3.2, 4.0, 2.5);
   scene.add(rimLight);
 
@@ -2044,14 +2103,11 @@ function initThreeScene() {
   grid.position.y = 0.01;
   deckGroup.add(grid);
 
-  // Main Baker Hughes Baseplate Skid (SOM896161129 R4: 21,748 x 4,400 mm)
   const mainSkid = smoothMesh(new THREE.BoxGeometry(13.2, 0.48, 3.65), M(0x1f2d42, { m: 0.68, r: 0.48 }), [-0.6, 0.24, 0.1]);
   deckGroup.add(mainSkid);
-  // Yellow safety border stripes along main skid
   const borderMat = M(0xeab308, { m: 0.3, r: 0.5 });
   deckGroup.add(smoothMesh(new THREE.BoxGeometry(13.26, 0.06, 0.09), borderMat, [-0.6, 0.50, 1.94]));
   deckGroup.add(smoothMesh(new THREE.BoxGeometry(13.26, 0.06, 0.09), borderMat, [-0.6, 0.50, -1.74]));
-  // Pedestals along X (GT support, PT saddle, Gearbox plinth, 2BCL Barrel pedestals)
   deckGroup.add(smoothMesh(new THREE.BoxGeometry(2.6, 1.0, 1.5), M(0x2b3b52), [-4.2, 0.98, 0]));
   deckGroup.add(smoothMesh(new THREE.BoxGeometry(1.5, 1.0, 1.7), M(0x2b3b52), [-1.9, 0.98, 0]));
   deckGroup.add(smoothMesh(new THREE.BoxGeometry(1.4, 0.95, 1.85), M(0x243347), [0.25, 0.96, 0.22]));
@@ -2071,45 +2127,65 @@ function initThreeScene() {
   const CL_Z_COMP = 0.45; // Represents Lufkin NF2219E 558.8 mm lateral offset!
 
   // =========================================================================
-  // 1. FILTER HOUSE (Air Intake Filtration & Plenum @ +9,500mm T.O.S. scaled)
+  // 1. FILTER HOUSE — HALF-CUT PLENUM REVEALING PRE-FILTERS, HEPA & BAFFLES
   // =========================================================================
   const gFilter = makeGroup('filterHouse');
-  // Steel structural legs lifting Filter House
   [[-7.8, -1.1], [-7.8, 1.1], [-5.8, -1.1], [-5.8, 1.1]].forEach(([px, pz]) => {
     gFilter.add(smoothMesh(new THREE.BoxGeometry(0.18, 3.7, 0.18), M(0x334155), [px, 2.0, pz]));
   });
-  // Elevated Filter House Body
-  const fhBody = smoothMesh(new THREE.BoxGeometry(2.5, 2.5, 2.7), M(0x475569, { m: 0.55, r: 0.45 }), [-6.8, 5.05, 0]);
-  gFilter.add(fhBody);
+  // Elevated Half-Cut Filter Housing
+  addHalfBoxCabinet(gFilter, 2.5, 2.5, 2.7, [-6.8, 5.05, 0], 0x475569);
+  // Internal Coarse Pre-Filter Panels (emerald) & Deep HEPA Pocket Cartridges (cyan)
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) {
+      gFilter.add(smoothMesh(new THREE.BoxGeometry(0.12, 0.68, 0.65), M(0x10b981, { r: 0.7 }), [-7.55, 4.35 + r * 0.72, -0.7 + c * 0.7]));
+      gFilter.add(smoothMesh(new THREE.BoxGeometry(0.32, 0.62, 0.62), M(0x38bdf8, { r: 0.6 }), [-6.95, 4.35 + r * 0.72, -0.7 + c * 0.7]));
+    }
+  }
   // Weather hoods / louvers on -X face
   for (let i = 0; i < 4; i++) {
     gFilter.add(smoothMesh(new THREE.BoxGeometry(0.4, 0.18, 2.3), M(0x38bdf8, { m: 0.4, r: 0.4 }), [-8.18, 4.35 + i * 0.48, 0], [0, 0, 0.35]));
   }
-  // Vertical Clean Air Intake Silencer Duct curving into LM2500 Bellmouth
-  gFilter.add(smoothMesh(new THREE.BoxGeometry(1.35, 2.1, 1.55), M(0x64748b), [-6.15, 3.05, 0]));
-  gFilter.add(smoothMesh(new THREE.CylinderGeometry(0.58, 0.58, 0.9, 24), M(0x64748b), [-5.8, CL_Y, 0], [0, 0, Math.PI / 2]));
-  // Inspection door ZSC-1101-16
-  gFilter.add(smoothMesh(new THREE.BoxGeometry(0.55, 1.1, 0.08), M(0xf59e0b), [-6.8, 4.75, 1.38]));
+  // Half-Cut Vertical Clean-Air Intake Chute exposing 5 Acoustic Splitter Baffles!
+  addHalfBoxCabinet(gFilter, 1.35, 2.1, 1.55, [-6.15, 3.05, 0], 0x64748b);
+  for (let b = -2; b <= 2; b++) {
+    gFilter.add(smoothMesh(new THREE.BoxGeometry(0.08, 1.85, 1.25), M(0xe2e8f0, { r: 0.65 }), [-6.15 + b * 0.22, 3.05, -0.05]));
+  }
+  // Half-Cut Intake Transition Elbow to Bellmouth + 3oo3 Inlet Gas Sensors GD-1101-03
+  gFilter.add(smoothMesh(new THREE.CylinderGeometry(0.58, 0.58, 0.9, 24, 1, true, Math.PI * 0.75, Math.PI * 1.05), M(0x64748b, { dbl: true }), [-5.8, CL_Y, 0], [0, 0, Math.PI / 2]));
+  const filterElbowCov = smoothMesh(new THREE.CylinderGeometry(0.584, 0.584, 0.9, 24, 1, false, -Math.PI * 0.25, Math.PI * 0.95), M(0x64748b), [-5.8, CL_Y, 0], [0, 0, Math.PI / 2]);
+  gFilter.add(filterElbowCov);
+  VIEW3D.anim.cutCovers.push(filterElbowCov);
   tagHit(gFilter, 'filterHouse');
 
   // =========================================================================
-  // 2. LM2500+G4 GAS GENERATOR (17-Stage Axial + SAC + 2-Stage HPT, CCW)
+  // 2. LM2500+G4 GAS GENERATOR (HALF-CUT COMPRESSOR + STATORS + SAC LINER + STARTER)
   // =========================================================================
   const gGG = makeGroup('lm2500gg');
-  // Bellmouth nose cone (rotating & stationery)
-  gGG.add(smoothMesh(new THREE.CylinderGeometry(0.62, 0.48, 0.5, 28, 1, true), M(0x94a3b8, { dbl: true }), [-5.35, CL_Y, CL_Z_GT], [0, 0, Math.PI / 2]));
-  // Transparent Cutaway Outer Casing of Axial Compressor
-  const ggCutCasing = smoothMesh(new THREE.CylinderGeometry(0.46, 0.41, 1.55, 28, 1, true, 0, Math.PI * 1.15), M(0x64748b, { t: true, o: 0.42, dbl: true }), [-4.45, CL_Y, CL_Z_GT], [Math.PI / 2, 0, Math.PI / 2]);
-  ggCutCasing.rotation.set(0, 0, Math.PI / 2);
-  gGG.add(ggCutCasing);
+  // Half-cut Bellmouth nose inlet
+  gGG.add(smoothMesh(new THREE.CylinderGeometry(0.62, 0.48, 0.5, 28, 1, true, Math.PI * 0.75, Math.PI * 1.05), M(0x94a3b8, { dbl: true }), [-5.35, CL_Y, CL_Z_GT], [0, 0, Math.PI / 2]));
+  // Back-Bottom 50% Solid Outer Casing of Axial Compressor + SAC Diffuser (with Cut Rim Trim)
+  gGG.add(smoothMesh(new THREE.CylinderGeometry(0.47, 0.42, 1.65, 28, 1, true, Math.PI * 0.75, Math.PI * 1.05), M(0x475569, { m: 0.72, r: 0.3, dbl: true }), [-4.45, CL_Y, CL_Z_GT], [0, 0, Math.PI / 2]));
+  gGG.add(smoothMesh(new THREE.BoxGeometry(1.65, 0.04, 0.06), MAT_CUT, [-4.45, CL_Y + 0.31, CL_Z_GT - 0.31], null, false));
+  gGG.add(smoothMesh(new THREE.BoxGeometry(1.65, 0.04, 0.06), MAT_CUT, [-4.45, CL_Y - 0.31, CL_Z_GT + 0.31], null, false));
+
+  // Toggleable Front-Top Half Outer Casing of GG (appears when Cutaway is OFF!)
+  const ggCover = smoothMesh(new THREE.CylinderGeometry(0.475, 0.425, 1.65, 28, 1, false, -Math.PI * 0.25, Math.PI * 0.95), M(0x64748b), [-4.45, CL_Y, CL_Z_GT], [0, 0, Math.PI / 2]);
+  gGG.add(ggCover);
+  VIEW3D.anim.cutCovers.push(ggCover);
+
+  // Stator Half-Rings (fixed to casing bottom-back between spinning rotor disks)
+  for (let s = 0; s < 9; s++) {
+    const r = 0.43 - s * 0.013;
+    const xPos = -5.12 + s * 0.15;
+    gGG.add(smoothMesh(new THREE.TorusGeometry(r, 0.014, 6, 18, Math.PI * 1.05), M(0x64748b), [xPos, CL_Y, CL_Z_GT], [0, Math.PI / 2, Math.PI * 0.75]));
+  }
 
   // Rotating 17-Stage GG Rotor Assembly (CCW)
   const ggRotor = new THREE.Group();
   ggRotor.position.set(-4.15, CL_Y, CL_Z_GT);
   ggRotor.add(smoothMesh(new THREE.CylinderGeometry(0.11, 0.14, 2.45, 20), M(0xcbd5e1, { m: 0.9, r: 0.2 }), [0, 0, 0], [0, 0, Math.PI / 2]));
-  // Nose spinner cone
   ggRotor.add(smoothMesh(new THREE.ConeGeometry(0.16, 0.36, 20), M(0xe2e8f0, { m: 0.9, r: 0.2 }), [-1.32, 0, 0], [0, 0, Math.PI / 2]));
-  // 17 Compressor Blade Stages (simplified to 10 visually rich discs + fanned blades!)
   for (let s = 0; s < 10; s++) {
     const r = 0.42 - s * 0.014;
     const xPos = -1.05 + s * 0.15;
@@ -2133,29 +2209,32 @@ function initThreeScene() {
   gGG.add(ggRotor);
   VIEW3D.anim.ggRotors.push(ggRotor);
 
-  // External VSV Actuator Rings (golden rings around compressor)
+  // External VSV Actuator Half-Rings & Half-Cut SAC Burner Liner + Fuel Nozzles
   [-4.95, -4.65, -4.35].forEach(vx => {
-    gGG.add(smoothMesh(new THREE.TorusGeometry(0.48, 0.022, 8, 24), M(0xfbbf24, { m: 0.8, r: 0.3 }), [vx, CL_Y, CL_Z_GT], [0, Math.PI / 2, 0]));
+    gGG.add(smoothMesh(new THREE.TorusGeometry(0.49, 0.022, 8, 18, Math.PI * 1.15), M(0xfbbf24, { m: 0.8, r: 0.3 }), [vx, CL_Y, CL_Z_GT], [0, Math.PI / 2, Math.PI * 0.7]));
   });
-  // SAC Single Annular Combustor Glowing Flame Core
-  const flameRing = smoothMesh(new THREE.TorusGeometry(0.30, 0.09, 14, 28), M(0xf97316, { e: 0xff6b00, ei: 1.8, t: true, o: 0.88 }), [-3.52, CL_Y, CL_Z_GT], [0, Math.PI / 2, 0]);
+  // Half-Cut SAC Combustor Casing & Perforated Flame Tube
+  gGG.add(smoothMesh(new THREE.CylinderGeometry(0.41, 0.41, 0.56, 24, 1, true, Math.PI * 0.75, Math.PI * 1.05), M(0x9a3412, { dbl: true }), [-3.48, CL_Y, CL_Z_GT], [0, 0, Math.PI / 2]));
+  const flameRing = smoothMesh(new THREE.TorusGeometry(0.28, 0.085, 14, 28), M(0xf97316, { e: 0xff6b00, ei: 1.8, t: true, o: 0.88 }), [-3.48, CL_Y, CL_Z_GT], [0, Math.PI / 2, 0]);
   gGG.add(flameRing);
   VIEW3D.anim.flameCore = flameRing;
 
-  // Hydraulic Starter PM-1101-10 & Slow Turning Pony Motor (88HR-1)
-  const hssMotor = smoothMesh(new THREE.CylinderGeometry(0.18, 0.18, 0.48, 16), M(0x0ea5e9), [-4.6, 1.55, 0.45], [0, 0, Math.PI / 2]);
-  gGG.add(hssMotor);
-  VIEW3D.anim.hssMesh = hssMotor;
+  // Half-Cut Hydraulic Starter PM-1101-10 (revealing internal swashplate & drive shaft!)
+  gGG.add(smoothMesh(new THREE.CylinderGeometry(0.19, 0.19, 0.48, 18, 1, true, Math.PI * 0.75, Math.PI * 1.05), M(0x0284c7, { dbl: true }), [-4.6, 1.55, 0.45], [0, 0, Math.PI / 2]));
+  gGG.add(smoothMesh(new THREE.CylinderGeometry(0.08, 0.14, 0.38, 16), M(0xfacc15), [-4.6, 1.55, 0.45], [0, 0, Math.PI / 2])); // Swashplate/piston drum
+  const hssCov = smoothMesh(new THREE.CylinderGeometry(0.194, 0.194, 0.48, 18, 1, false, -Math.PI * 0.25, Math.PI * 0.95), M(0x0ea5e9), [-4.6, 1.55, 0.45], [0, 0, Math.PI / 2]);
+  gGG.add(hssCov);
+  VIEW3D.anim.cutCovers.push(hssCov);
+  VIEW3D.anim.hssMesh = gGG;
   tagHit(gGG, 'lm2500gg');
 
   // =========================================================================
-  // 3. 6-STAGE POWER TURBINE + WHRU DIVERTER STACK (X = -2.9..-1.1)
+  // 3. 6-STAGE POWER TURBINE + HALF-CUT WHRU DIVERTER & CHIMNEY STACK
   // =========================================================================
   const gPT = makeGroup('lm2500pt');
   const ptRotor = new THREE.Group();
   ptRotor.position.set(-2.35, CL_Y, CL_Z_GT);
   ptRotor.add(smoothMesh(new THREE.CylinderGeometry(0.12, 0.15, 1.3, 20), M(0xd97706, { m: 0.8, r: 0.25 }), [0, 0, 0], [0, 0, Math.PI / 2]));
-  // 6 Expanding Power Turbine Stages (3,600 rpm CCW)
   for (let s = 0; s < 6; s++) {
     const r = 0.36 + s * 0.045;
     const xPos = -0.45 + s * 0.16;
@@ -2168,36 +2247,51 @@ function initThreeScene() {
   gPT.add(ptRotor);
   VIEW3D.anim.ptRotors.push(ptRotor);
 
-  // PT Exhaust Volute Collector + Transition Duct up to Diverter Box
-  gPT.add(smoothMesh(new THREE.CylinderGeometry(0.68, 0.64, 1.05, 24, 1, true, 0, Math.PI * 1.25), M(0x475569, { t: true, o: 0.45, dbl: true }), [-2.3, CL_Y, CL_Z_GT], [0, 0, Math.PI / 2]));
-  // Exhaust Plume Stack + Diverter Housing
-  gPT.add(smoothMesh(new THREE.BoxGeometry(1.45, 2.0, 1.45), M(0x334155, { t: true, o: 0.55 }), [-1.65, 3.7, 0]));
-  // Diverter Damper Blade (rotates between Vertical Bypass vs Side WHRU!)
+  // PT Stator Nozzles & True 50% Cutaway Volute Casing + Rim
+  gPT.add(smoothMesh(new THREE.CylinderGeometry(0.68, 0.64, 1.05, 24, 1, true, Math.PI * 0.75, Math.PI * 1.05), M(0x475569, { dbl: true }), [-2.3, CL_Y, CL_Z_GT], [0, 0, Math.PI / 2]));
+  gPT.add(smoothMesh(new THREE.BoxGeometry(1.05, 0.04, 0.06), MAT_CUT, [-2.3, CL_Y + 0.45, -0.45], null, false));
+  const ptCover = smoothMesh(new THREE.CylinderGeometry(0.685, 0.645, 1.05, 24, 1, false, -Math.PI * 0.25, Math.PI * 0.95), M(0x475569), [-2.3, CL_Y, CL_Z_GT], [0, 0, Math.PI / 2]);
+  gPT.add(ptCover);
+  VIEW3D.anim.cutCovers.push(ptCover);
+
+  // Half-Cut WHRU Diverter Housing (open +Z front) exposing Pivoting Diverter Damper Blade!
+  addHalfBoxCabinet(gPT, 1.45, 2.0, 1.45, [-1.65, 3.7, 0], 0x334155);
   const bladePivot = new THREE.Group();
   bladePivot.position.set(-1.65, 4.15, 0);
-  bladePivot.add(smoothMesh(new THREE.BoxGeometry(1.1, 1.15, 0.08), M(0xf59e0b, { m: 0.7, r: 0.3 }), [0, 0.35, 0]));
+  bladePivot.add(smoothMesh(new THREE.CylinderGeometry(0.07, 0.07, 1.35, 12), M(0xeab308), [0, 0, 0], [0, 0, Math.PI / 2]));
+  bladePivot.add(smoothMesh(new THREE.BoxGeometry(1.12, 1.15, 0.08), M(0xf59e0b, { m: 0.7, r: 0.3 }), [0, 0.35, 0]));
   gPT.add(bladePivot);
   VIEW3D.anim.whruBlade = bladePivot;
 
-  // Bypass Vertical Stack + Acoustic Silencer Top
-  gPT.add(smoothMesh(new THREE.CylinderGeometry(0.65, 0.65, 3.0, 24), M(0x475569), [-1.65, 6.2, 0]));
-  gPT.add(smoothMesh(new THREE.CylinderGeometry(0.75, 0.65, 0.25, 24), M(0x334155), [-1.65, 7.7, 0]));
-  // WHRU Side Branch Duct toward -Z
-  gPT.add(smoothMesh(new THREE.BoxGeometry(1.15, 1.15, 1.8), M(0x3b4d68), [-1.65, 4.3, -1.6]));
+  // Half-Cut Vertical Bypass Chimney Stack (showing internal Acoustic Silencer Splitter Baffles!)
+  addHalfVertVessel(gPT, 0.65, 3.0, [-1.65, 6.2, 0], 0x475569, 10);
+  for (let b = -1; b <= 1; b++) {
+    gPT.add(smoothMesh(new THREE.BoxGeometry(0.07, 2.4, 0.85), M(0x94a3b8), [-1.65 + b * 0.3, 6.2, -0.1]));
+  }
+  gPT.add(smoothMesh(new THREE.CylinderGeometry(0.75, 0.65, 0.25, 24, 1, true, Math.PI * 0.52, Math.PI * 0.96), M(0x334155, { dbl: true }), [-1.65, 7.7, 0]));
+
+  // Half-Cut WHRU Side Branch Duct revealing internal Expansion Baffle
+  addHalfBoxCabinet(gPT, 1.15, 1.15, 1.8, [-1.65, 4.3, -1.6], 0x3b4d68);
+  gPT.add(smoothMesh(new THREE.BoxGeometry(0.85, 0.06, 1.4), M(0xf97316), [-1.65, 4.3, -1.6]));
   tagHit(gPT, 'lm2500pt');
 
   // =========================================================================
-  // 4. LUFKIN NF2219E GEARBOX (1 : 2.59375, ΔZ = 558.8 mm, CCW -> CW!)
+  // 4. LUFKIN NF2219E GEARBOX — HALF-CUT CASE EXPOSING BEARINGS & OIL SPRAY BAR
   // =========================================================================
   const gGbx = makeGroup('gearbox');
-  // GT->Gearbox Coupling DBSE (Z = 0)
   gGbx.add(smoothMesh(new THREE.CylinderGeometry(0.14, 0.14, 0.95, 18), M(0xeab308), [-1.08, CL_Y, CL_Z_GT], [0, 0, Math.PI / 2]));
-  // Gearbox Lower Housing (supports Z=0 to Z=+0.45 offset)
-  gGbx.add(smoothMesh(new THREE.BoxGeometry(1.15, 0.72, 1.48), M(0x1e293b, { m: 0.7, r: 0.4 }), [0.15, 1.85, 0.22]));
-  // Removable Upper Gearbox Cover (lifts upward with Explode slider!)
-  const gbxCover = smoothMesh(new THREE.BoxGeometry(1.12, 0.65, 1.42), M(0x334155, { t: true, o: 0.55 }), [0.15, 2.56, 0.22]);
+  // Half-Cut Lower Sump + Oil Spray Manifold + Bronze Bearing Pedestals
+  addHalfBoxCabinet(gGbx, 1.15, 0.72, 1.48, [0.15, 1.85, 0.22], 0x1e293b);
+  gGbx.add(smoothMesh(new THREE.CylinderGeometry(0.04, 0.04, 0.9, 10), M(0xf59e0b), [0.15, 2.55, 0.22], [Math.PI / 2, 0, 0])); // Lube spray bar
+  // Bronze Journal Bearing Halves on LS Bull & HS Pinion shafts
+  [[-0.3, CL_Z_GT], [0.6, CL_Z_GT], [-0.3, CL_Z_COMP], [0.6, CL_Z_COMP]].forEach(([bx, bz]) => {
+    gGbx.add(smoothMesh(new THREE.CylinderGeometry(0.19, 0.19, 0.14, 18, 1, false, Math.PI * 0.5, Math.PI), M(0xd97706, { m: 0.85, r: 0.25 }), [bx, CL_Y, bz], [0, 0, Math.PI / 2]));
+  });
+  // Removable Upper Gearbox Cover (open in Cutaway/Explode, closed when Cutaway OFF)
+  const gbxCover = smoothMesh(new THREE.BoxGeometry(1.12, 0.65, 1.42), M(0x334155, { m: 0.6, r: 0.4 }), [0.15, 2.56, 0.22]);
   gGbx.add(gbxCover);
   VIEW3D.anim.gbxCover = gbxCover;
+  VIEW3D.anim.cutCovers.push(gbxCover);
 
   // Low-Speed Bull Gear @ Z = 0.0 (3,600 rpm CCW)
   const bullG = new THREE.Group();
@@ -2220,8 +2314,6 @@ function initThreeScene() {
   }
   gGbx.add(pinG);
   VIEW3D.anim.gearPinion = pinG;
-
-  // Gearbox -> Compressor HS Coupling (Z = +0.45!)
   gGbx.add(smoothMesh(new THREE.CylinderGeometry(0.11, 0.11, 0.85, 18), M(0xfacc15), [1.05, CL_Y, CL_Z_COMP], [0, 0, Math.PI / 2]));
   tagHit(gGbx, 'gearbox');
 
@@ -2229,38 +2321,45 @@ function initThreeScene() {
   // 5. 2BCL456/A BACK-TO-BACK CENTRIFUGAL COMPRESSOR + SLIDE-OUT BUNDLE
   // =========================================================================
   const gComp = makeGroup('compressor');
-  // Outer Forged Barrel Casing (Semi-transparent when cutaway)
-  const compBarrel = smoothMesh(new THREE.CylinderGeometry(0.76, 0.76, 3.05, 32, 1, true, 0, Math.PI * 1.25), M(0x3b82f6, { t: true, o: 0.38, dbl: true }), [3.15, CL_Y, CL_Z_COMP], [0, 0, Math.PI / 2]);
+  // Back-Bottom 50% Solid Forged Barrel Casing + Longitudinal Section Rim Faces!
+  const compBarrel = smoothMesh(new THREE.CylinderGeometry(0.76, 0.76, 3.05, 32, 1, true, Math.PI * 0.75, Math.PI * 1.05), M(0x2563eb, { m: 0.68, r: 0.34, dbl: true }), [3.15, CL_Y, CL_Z_COMP], [0, 0, Math.PI / 2]);
   gComp.add(compBarrel);
+  gComp.add(smoothMesh(new THREE.BoxGeometry(3.05, 0.055, 0.08), MAT_CUT, [3.15, CL_Y + 0.52, CL_Z_COMP - 0.52], null, false));
+  gComp.add(smoothMesh(new THREE.BoxGeometry(3.05, 0.055, 0.08), MAT_CUT, [3.15, CL_Y - 0.52, CL_Z_COMP + 0.52], null, false));
+  // Toggleable Front-Top Barrel Shell (covers 2BCL back to full closed drum if Cutaway toggled OFF)
+  const compCov = smoothMesh(new THREE.CylinderGeometry(0.764, 0.764, 3.05, 32, 1, false, -Math.PI * 0.25, Math.PI * 0.95), M(0x3b82f6), [3.15, CL_Y, CL_Z_COMP], [0, 0, Math.PI / 2]);
+  gComp.add(compCov);
   VIEW3D.anim.compBarrelCut = compBarrel;
+  VIEW3D.anim.cutCovers.push(compCov);
 
-  // Suction & Discharge Vertical/Side Nozzles (Stg1 + Stg2)
-  const nzlMat = M(0x1e40af, { m: 0.7, r: 0.35 });
-  gComp.add(smoothMesh(new THREE.CylinderGeometry(0.24, 0.24, 0.9, 20), M(0x0284c7), [2.1, CL_Y + 0.85, CL_Z_COMP - 0.15])); // Stg1 Suct
-  gComp.add(smoothMesh(new THREE.CylinderGeometry(0.21, 0.21, 0.9, 20), M(0x2563eb), [2.8, CL_Y + 0.85, CL_Z_COMP + 0.15])); // Stg1 Disch
-  gComp.add(smoothMesh(new THREE.CylinderGeometry(0.20, 0.20, 0.9, 20), M(0x7c3aed), [4.2, CL_Y + 0.85, CL_Z_COMP - 0.15])); // Stg2 Suct
-  gComp.add(smoothMesh(new THREE.CylinderGeometry(0.18, 0.18, 0.9, 20), M(0x9333ea), [3.55, CL_Y + 0.85, CL_Z_COMP + 0.15])); // Stg2 Disch
+  // Suction & Discharge Nozzles (Cutaway upper collars to show bore interior)
+  gComp.add(smoothMesh(new THREE.CylinderGeometry(0.24, 0.24, 0.9, 20, 1, true, Math.PI * 0.5, Math.PI), M(0x0284c7, { dbl: true }), [2.1, CL_Y + 0.85, CL_Z_COMP - 0.15]));
+  gComp.add(smoothMesh(new THREE.CylinderGeometry(0.21, 0.21, 0.9, 20, 1, true, Math.PI * 0.5, Math.PI), M(0x2563eb, { dbl: true }), [2.8, CL_Y + 0.85, CL_Z_COMP + 0.15]));
+  gComp.add(smoothMesh(new THREE.CylinderGeometry(0.20, 0.20, 0.9, 20, 1, true, Math.PI * 0.5, Math.PI), M(0x7c3aed, { dbl: true }), [4.2, CL_Y + 0.85, CL_Z_COMP - 0.15]));
+  gComp.add(smoothMesh(new THREE.CylinderGeometry(0.18, 0.18, 0.9, 20, 1, true, Math.PI * 0.5, Math.PI), M(0x9333ea, { dbl: true }), [3.55, CL_Y + 0.85, CL_Z_COMP + 0.15]));
 
-  // Slide-Out Inner Rotor & Diaphragm Bundle (slides +3.4m along +X when Explode = 100%!)
+  // Slide-Out Inner Rotor & Diaphragm Bundle (slides +3.45m along +X when Explode = 100%!)
   const bundleG = new THREE.Group();
   bundleG.position.set(3.15, CL_Y, CL_Z_COMP);
   gComp.add(bundleG);
   VIEW3D.anim.compBundle = bundleG;
 
-  // Inner Diaphragm Shell Rings + Shear Ring End Cover
+  // Inner Diaphragm Half-Shells & Return Channel Walls + Tilting-Pad Bronze Bearings + Shear Ring End Cover
   [-1.25, -0.5, 0.0, 0.55, 1.25].forEach((dx, idx) => {
-    const col = idx === 2 ? 0xf59e0b : 0x64748b; // Center balance wall in amber!
-    bundleG.add(smoothMesh(new THREE.TorusGeometry(0.62, 0.045, 10, 28), M(col, { m: 0.75, r: 0.3 }), [dx, 0, 0], [0, Math.PI / 2, 0]));
+    const col = idx === 2 ? 0xf59e0b : 0x64748b;
+    bundleG.add(smoothMesh(new THREE.TorusGeometry(0.62, 0.048, 10, 22, Math.PI * 1.15), M(col, { m: 0.75, r: 0.3 }), [dx, 0, 0], [0, Math.PI / 2, Math.PI * 0.7]));
   });
-  const endCap = smoothMesh(new THREE.CylinderGeometry(0.76, 0.76, 0.16, 28), M(0x475569, { m: 0.8, r: 0.3 }), [1.55, 0, 0], [0, 0, Math.PI / 2]);
+  [-1.42, 1.38].forEach(bx => {
+    bundleG.add(smoothMesh(new THREE.CylinderGeometry(0.19, 0.19, 0.16, 18, 1, false, Math.PI * 0.5, Math.PI), M(0xfbbf24), [bx, 0, 0], [0, 0, Math.PI / 2]));
+  });
+  const endCap = smoothMesh(new THREE.CylinderGeometry(0.76, 0.76, 0.16, 28, 1, false, Math.PI * 0.65, Math.PI * 1.15), M(0x475569, { m: 0.8, r: 0.3, dbl: true }), [1.55, 0, 0], [0, 0, Math.PI / 2]);
   bundleG.add(endCap);
 
-  // Rotating 2BCL456/A Back-to-Back Shaft & 6 Impellers (CW rotation!)
+  // Rotating 2BCL456/A Back-to-Back Shaft, Center & End Balance Drums + 6 Impellers (CW!)
   const compRot = new THREE.Group();
   compRot.add(smoothMesh(new THREE.CylinderGeometry(0.09, 0.09, 3.2, 20), M(0xf8fafc, { m: 0.95, r: 0.12 }), [0, 0, 0], [0, 0, Math.PI / 2]));
-  // Center Balance Drum + Thrust Collar
-  compRot.add(smoothMesh(new THREE.CylinderGeometry(0.24, 0.24, 0.18, 22), M(0xf59e0b, { m: 0.8, r: 0.2 }), [0.0, 0, 0], [0, 0, Math.PI / 2]));
-  // 3 First-Stage Impellers (left -> center) + 3 Second-Stage Impellers (right -> center Back-to-Back!)
+  compRot.add(smoothMesh(new THREE.CylinderGeometry(0.25, 0.25, 0.18, 22), M(0xf59e0b, { m: 0.8, r: 0.2 }), [0.0, 0, 0], [0, 0, Math.PI / 2])); // Center balance drum
+  compRot.add(smoothMesh(new THREE.CylinderGeometry(0.18, 0.18, 0.14, 22), M(0xf59e0b, { m: 0.8, r: 0.2 }), [1.18, 0, 0], [0, 0, Math.PI / 2])); // NDE balance drum
   const impPositions = [-0.92, -0.62, -0.32, 0.34, 0.64, 0.94];
   const impRadii = [0.46, 0.44, 0.42, 0.38, 0.36, 0.34];
   impPositions.forEach((px, i) => {
@@ -2270,7 +2369,6 @@ function initThreeScene() {
       ? smoothMesh(new THREE.CylinderGeometry(impRadii[i], 0.16, 0.12, 24), M(impCol, { m: 0.85, r: 0.2 }), [px, 0, 0], [0, 0, Math.PI / 2])
       : smoothMesh(new THREE.CylinderGeometry(0.16, impRadii[i], 0.12, 24), M(impCol, { m: 0.85, r: 0.2 }), [px, 0, 0], [0, 0, Math.PI / 2]);
     compRot.add(cone);
-    // Impeller vanes for visual spin cue!
     for (let v = 0; v < 6; v++) {
       const a = (v / 6) * Math.PI * 2;
       compRot.add(smoothMesh(new THREE.BoxGeometry(0.11, 0.025, impRadii[i] * 0.72), M(0xfef08a), [px, Math.sin(a) * impRadii[i] * 0.55, Math.cos(a) * impRadii[i] * 0.55], [a, 0, 0], false));
@@ -2281,28 +2379,37 @@ function initThreeScene() {
   tagHit(gComp, 'compressor');
 
   // =========================================================================
-  // 6. DRY GAS SEAL (GASPAC-L-55 TANDEM) + SEAL GAS BOOSTER SKID
+  // 6. DRY GAS SEAL (HALF-CUT TANDEM GASPAC-L-55 CARTRIDGES + COALESCERS + BOOSTER)
   // =========================================================================
   const gDgs = makeGroup('dgs');
-  // Glowing Tandem DGS Rings on DE & NDE ends of 2BCL
+  // Half-Cut DE & NDE Seal Housing Cartridges exposing Silicon Carbide Primary/Secondary Faces + Carbon Ring!
   [1.72, 4.58].forEach(dx => {
-    gDgs.add(smoothMesh(new THREE.CylinderGeometry(0.28, 0.28, 0.22, 22), M(0x06b6d4, { e: 0x0891b2, ei: 0.55 }), [dx, CL_Y, CL_Z_COMP], [0, 0, Math.PI / 2]));
+    gDgs.add(smoothMesh(new THREE.CylinderGeometry(0.30, 0.30, 0.24, 22, 1, true, Math.PI * 0.75, Math.PI * 1.05), M(0x0e7490, { dbl: true }), [dx, CL_Y, CL_Z_COMP], [0, 0, Math.PI / 2]));
+    gDgs.add(smoothMesh(new THREE.CylinderGeometry(0.22, 0.22, 0.06, 20), M(0x22d3ee, { e: 0x06b6d4, ei: 0.7 }), [dx - 0.05, CL_Y, CL_Z_COMP], [0, 0, Math.PI / 2])); // Primary SiC
+    gDgs.add(smoothMesh(new THREE.CylinderGeometry(0.20, 0.20, 0.05, 20), M(0xf59e0b), [dx + 0.05, CL_Y, CL_Z_COMP], [0, 0, Math.PI / 2])); // N2 Carbon barrier ring
+    const sCov = smoothMesh(new THREE.CylinderGeometry(0.304, 0.304, 0.24, 22, 1, false, -Math.PI * 0.25, Math.PI * 0.95), M(0x06b6d4), [dx, CL_Y, CL_Z_COMP], [0, 0, Math.PI / 2]);
+    gDgs.add(sCov);
+    VIEW3D.anim.cutCovers.push(sCov);
   });
-  // Off-base Seal Gas Panel & CM-1101-01 Booster
+  // Off-base Seal Gas Conditioning Skid (Half-Cut Coalescing Filters & Booster Control Cabinet!)
   gDgs.add(smoothMesh(new THREE.BoxGeometry(2.3, 0.25, 1.15), M(0x1e293b), [3.3, 0.125, 3.6]));
-  gDgs.add(smoothMesh(new THREE.CylinderGeometry(0.22, 0.22, 1.35, 18), M(0x0ea5e9), [2.6, 1.15, 3.55])); // Coalescer A
-  gDgs.add(smoothMesh(new THREE.CylinderGeometry(0.22, 0.22, 1.35, 18), M(0x0ea5e9), [3.15, 1.15, 3.55])); // Coalescer B
-  gDgs.add(smoothMesh(new THREE.BoxGeometry(0.75, 1.55, 0.22), M(0x334155), [4.0, 1.05, 3.55])); // Control rack
-  // Connecting SS Seal Gas Header lines
+  [2.6, 3.15].forEach(fx => {
+    addHalfVertVessel(gDgs, 0.22, 1.35, [fx, 1.15, 3.55], 0x0ea5e9, 15);
+    gDgs.add(smoothMesh(new THREE.CylinderGeometry(0.11, 0.11, 0.95, 14), M(0xf8fafc), [fx, 1.25, 3.55])); // Pleated Coalescer Element inside!
+    gDgs.add(smoothMesh(new THREE.CylinderGeometry(0.19, 0.19, 0.22, 14), M(0x0284c7), [fx, 0.62, 3.55])); // Condensate boot sump
+  });
+  // Open-Front DGS Control & CM-1101 Booster Cabinet showing Electric Heater Core H-1101 + Booster Impeller
+  addHalfBoxCabinet(gDgs, 0.78, 1.55, 0.42, [4.0, 1.05, 3.55], 0x334155);
+  gDgs.add(smoothMesh(new THREE.CylinderGeometry(0.14, 0.14, 0.32, 16), M(0x38bdf8), [3.85, 0.75, 3.55], [Math.PI / 2, 0, 0])); // CM-1101 Booster
+  gDgs.add(smoothMesh(new THREE.CylinderGeometry(0.08, 0.08, 0.75, 12), M(0xef4444, { e: 0x991b1b, ei: 0.4 }), [4.15, 1.25, 3.52])); // H-1101 Electric Heater rod
   gDgs.add(smoothMesh(new THREE.CylinderGeometry(0.04, 0.04, 3.1, 10), M(0x22d3ee), [3.1, 1.4, 2.0], [Math.PI / 2, 0, 0]));
   tagHit(gDgs, 'dgs');
 
   // =========================================================================
-  // 7. GT ACOUSTIC ENCLOSURE, VENT FANS 88BA-1/2 & FIRE DAMPERS XV-1101-12
+  // 7. GT ACOUSTIC ENCLOSURE — OPEN ROOF/SIDE REVEALING MIST PIPING, FANS & IR3s
   // =========================================================================
   const gEncl = makeGroup('enclosure');
   const wallMat = M(0x475569, { m: 0.65, r: 0.42, t: true, o: 0.32, dbl: true });
-  // Roof + Back + Ends
   const enclRoof = smoothMesh(new THREE.BoxGeometry(4.95, 0.14, 2.75), wallMat, [-3.4, 3.85, 0]);
   const enclBack = smoothMesh(new THREE.BoxGeometry(4.95, 3.25, 0.12), wallMat, [-3.4, 2.18, -1.35]);
   const enclFront = smoothMesh(new THREE.BoxGeometry(4.95, 3.25, 0.12), wallMat, [-3.4, 2.18, 1.35]);
@@ -2311,17 +2418,28 @@ function initThreeScene() {
   VIEW3D.anim.enclAllPanels = [enclRoof, enclBack, enclFront, enclEndL];
   VIEW3D.anim.enclFrontPanels = [enclFront];
 
+  // Internal Overhead Water Mist Spray Header + 6 Atomizing Nozzles inside GT Compartment!
+  gEncl.add(smoothMesh(new THREE.CylinderGeometry(0.035, 0.035, 4.2, 10), M(0x38bdf8), [-3.5, 3.65, 0], [0, 0, Math.PI / 2]));
+  [-5.1, -4.4, -3.7, -3.0, -2.3, -1.7].forEach(nx => {
+    gEncl.add(smoothMesh(new THREE.ConeGeometry(0.06, 0.14, 10), M(0xf59e0b), [nx, 3.55, 0], [Math.PI, 0, 0]));
+  });
+  // Internal IR3 Flame Sensors BE-1101A/B on inner enclosure corners
+  [[-5.5, 3.4, -1.1], [-1.5, 3.4, -1.1]].forEach(([ix, iy, iz]) => {
+    gEncl.add(smoothMesh(new THREE.CylinderGeometry(0.06, 0.06, 0.18, 10), M(0xef4444, { e: 0xdc2626, ei: 0.7 }), [ix, iy, iz], [0.4, 0, -0.5]));
+  });
+
   // Mirrorable Side Dismantling Door Frame (switches Z=+1.42 for PK-1101 vs Z=-1.42 for PK-2101!)
   const maintDoor = new THREE.Group();
-  maintDoor.add(smoothMesh(new THREE.BoxGeometry(1.7, 2.35, 0.09), M(0xf59e0b, { t: true, o: 0.55 }), [-3.8, 1.85, 1.42]));
+  maintDoor.add(smoothMesh(new THREE.BoxGeometry(1.7, 2.35, 0.09), M(0xf59e0b, { t: true, o: 0.45 }), [-3.8, 1.85, 1.42]));
   gEncl.add(maintDoor);
   VIEW3D.anim.dismantleSideObjs.push(maintDoor);
 
-  // Dual Roof Vent Fans 88BA-1 & 88BA-2 (HMFM-1101A/B-01)
+  // Half-Cut Dual Roof Vent Fan Shrouds 88BA-1 & 88BA-2 exposing internal motors & blades!
   [-4.6, -3.1].forEach((fx, fi) => {
-    gEncl.add(smoothMesh(new THREE.CylinderGeometry(0.42, 0.48, 0.45, 18), M(0x1e293b), [fx, 4.12, 0.55]));
+    addHalfVertVessel(gEncl, 0.44, 0.48, [fx, 4.12, 0.55], 0x1e293b, 0);
+    gEncl.add(smoothMesh(new THREE.CylinderGeometry(0.11, 0.11, 0.35, 12), M(0x64748b), [fx, 4.10, 0.55])); // Drive motor
     const fanRot = new THREE.Group();
-    fanRot.position.set(fx, 4.3, 0.55);
+    fanRot.position.set(fx, 4.30, 0.55);
     for (let b = 0; b < 4; b++) {
       fanRot.add(smoothMesh(new THREE.BoxGeometry(0.68, 0.025, 0.11), M(0x38bdf8), [0, 0, 0], [0, (b / 4) * Math.PI, 0], false));
     }
@@ -2329,14 +2447,13 @@ function initThreeScene() {
     VIEW3D.anim.ventFans[fi].push(fanRot);
   });
 
-  // Fire Dampers XV-1101-12 (3 Louver blades on enclosure air louver stack)
+  // Fire Dampers XV-1101-12
   [-5.1, -4.6, -4.1].forEach(lx => {
     const blade = smoothMesh(new THREE.BoxGeometry(0.4, 0.04, 0.72), M(0x22c55e), [lx, 3.92, -0.7]);
     gEncl.add(blade);
     VIEW3D.anim.dampers.push(blade);
   });
 
-  // Gas Leak & Fire Visualization Clouds inside Enclosure (reactive!)
   const gasCloud = smoothMesh(new THREE.BoxGeometry(4.4, 2.5, 2.2), M(0x22c55e, { t: true, o: 0.0, e: 0x22c55e, ei: 1.0 }), [-3.4, 2.2, 0], null, false);
   const fireCloud = smoothMesh(new THREE.SphereGeometry(0.95, 16, 12), M(0xf97316, { t: true, o: 0.0, e: 0xff2200, ei: 2.5 }), [-3.5, 2.1, 0], null, false);
   gEncl.add(gasCloud, fireCloud);
@@ -2345,67 +2462,97 @@ function initThreeScene() {
   tagHit(gEncl, 'enclosure');
 
   // =========================================================================
-  // 8. FIRE & GAS + WATER MIST SKID (4x N2 + 12x H2O 200 barg Cylinders)
+  // 8. FIRE & GAS WATER MIST SKID — HALF-CUT N2 & H2O CYLINDERS SHOWING DIP TUBES & WATER
   // =========================================================================
   const gFG = makeGroup('firegas');
   gFG.add(smoothMesh(new THREE.BoxGeometry(2.6, 0.22, 1.45), M(0x1e293b), [-3.8, 0.11, 3.4]));
-  // 4 Black/Green N2 Propellant Cylinders + 8 Front Row + 4 Back Row Blue H2O Cylinders
+  // 4 N2 Propellant Cylinders (front two cutaway exposing 200 barg dip tubes & brass valves)
   for (let i = 0; i < 4; i++) {
-    gFG.add(smoothMesh(new THREE.CylinderGeometry(0.11, 0.11, 1.55, 12), M(0x10b981), [-4.8 + i * 0.28, 0.98, 3.75]));
+    const cx = -4.8 + i * 0.28;
+    addHalfVertVessel(gFG, 0.11, 1.52, [cx, 0.98, 3.75], 0x10b981, 0);
+    gFG.add(smoothMesh(new THREE.CylinderGeometry(0.02, 0.02, 1.38, 8), M(0xfacc15), [cx, 0.96, 3.75])); // Siphon tube inside!
+    gFG.add(smoothMesh(new THREE.CylinderGeometry(0.04, 0.04, 0.16, 8), M(0xf59e0b), [cx, 1.82, 3.75]));
   }
+  // 12 Demineralized H2O Cylinders (half-cut showing internal glowing cyan water column & dip tube!)
   for (let i = 0; i < 6; i++) {
-    gFG.add(smoothMesh(new THREE.CylinderGeometry(0.11, 0.11, 1.55, 12), M(0x0284c7), [-4.8 + i * 0.34, 0.98, 3.25]));
-    gFG.add(smoothMesh(new THREE.CylinderGeometry(0.11, 0.11, 1.55, 12), M(0x0369a1), [-4.8 + i * 0.34, 0.98, 2.95]));
+    const hx = -4.8 + i * 0.34;
+    addHalfVertVessel(gFG, 0.11, 1.52, [hx, 0.98, 3.25], 0x0284c7, 0);
+    gFG.add(smoothMesh(new THREE.CylinderGeometry(0.082, 0.082, 1.12, 14), M(0x38bdf8, { t: true, o: 0.72, e: 0x0284c7, ei: 0.35 }), [hx, 0.80, 3.25])); // Clean H2O fill!
+    gFG.add(smoothMesh(new THREE.CylinderGeometry(0.018, 0.018, 1.40, 8), M(0xf8fafc), [hx, 0.98, 3.25])); // Dip tube
+    addHalfVertVessel(gFG, 0.11, 1.52, [hx, 0.98, 2.95], 0x0369a1, 0);
+    gFG.add(smoothMesh(new THREE.CylinderGeometry(0.082, 0.082, 1.12, 14), M(0x38bdf8, { t: true, o: 0.72 }), [hx, 0.80, 2.95]));
   }
-  // Visual Alarm Beacon XA-1101 on GT Roof
   const beacon = smoothMesh(new THREE.SphereGeometry(0.16, 14, 12), M(0xef4444, { e: 0xef4444, ei: 0.2 }), [-1.6, 4.05, 1.32]);
   gFG.add(beacon);
   VIEW3D.anim.beaconLight = beacon;
   tagHit(gFG, 'firegas');
 
   // =========================================================================
-  // 9. FUEL GAS SKID (V-3804 + DBB FG-1/2 + FCV-1101-01 + SDV-3814 N2)
+  // 9. FUEL GAS SKID — HALF-CUT SCRUBBER (DEMISTER/ELEMENTS) & HALF-CUT DBB VALVES
   // =========================================================================
   const gFuel = makeGroup('fuelSkid');
   gFuel.add(smoothMesh(new THREE.BoxGeometry(2.6, 0.22, 1.5), M(0x1e293b), [-4.2, 0.11, -3.5]));
-  gFuel.add(smoothMesh(new THREE.CylinderGeometry(0.32, 0.32, 1.85, 20), M(0x059669), [-4.9, 1.15, -3.5])); // Scrubber
+  // Half-Cut Fuel Gas Filter-Scrubber V-3804 revealing Coalescer Cartridges + Wire Mesh Demister Pad!
+  addHalfVertVessel(gFuel, 0.34, 1.85, [-4.9, 1.15, -3.5], 0x059669, -20);
+  gFuel.add(smoothMesh(new THREE.CylinderGeometry(0.29, 0.29, 0.14, 18), M(0xe2e8f0), [-4.9, 1.68, -3.5])); // Demister Mesh Pad
+  gFuel.add(smoothMesh(new THREE.CylinderGeometry(0.11, 0.11, 0.85, 14), M(0xfacc15), [-4.9, 0.95, -3.5])); // Filter element inside!
+
+  // Pipe manifold & Half-Cut DBB Valve Bodies FG-1, FG-2, FCV exposing internal rotating balls/plugs!
   gFuel.add(smoothMesh(new THREE.CylinderGeometry(0.08, 0.08, 2.3, 12), M(0x10b981), [-3.9, 1.0, -3.3], [0, 0, Math.PI / 2]));
-  // FG-1, FG-2, FCV Valve Actuators
-  const vFg1 = smoothMesh(new THREE.BoxGeometry(0.24, 0.38, 0.24), M(0x22c55e, { e: 0x16a34a, ei: 0.4 }), [-4.3, 1.25, -3.3]);
-  const vFg2 = smoothMesh(new THREE.BoxGeometry(0.24, 0.38, 0.24), M(0x22c55e, { e: 0x16a34a, ei: 0.4 }), [-3.7, 1.25, -3.3]);
+  const vFg1 = smoothMesh(new THREE.CylinderGeometry(0.14, 0.14, 0.26, 16, 1, true, Math.PI * 0.5, Math.PI), M(0x16a34a, { dbl: true }), [-4.3, 1.0, -3.3], [0, 0, Math.PI / 2]);
+  const vFg1Core = smoothMesh(new THREE.SphereGeometry(0.10, 12, 10), M(0x22c55e, { e: 0x16a34a, ei: 0.5 }), [-4.3, 1.0, -3.3]);
+  const vFg2 = smoothMesh(new THREE.CylinderGeometry(0.14, 0.14, 0.26, 16, 1, true, Math.PI * 0.5, Math.PI), M(0x16a34a, { dbl: true }), [-3.7, 1.0, -3.3], [0, 0, Math.PI / 2]);
+  const vFg2Core = smoothMesh(new THREE.SphereGeometry(0.10, 12, 10), M(0x22c55e, { e: 0x16a34a, ei: 0.5 }), [-3.7, 1.0, -3.3]);
+  const vAct1 = smoothMesh(new THREE.BoxGeometry(0.20, 0.28, 0.18), M(0x22c55e, { e: 0x16a34a, ei: 0.4 }), [-4.3, 1.28, -3.3]);
+  const vAct2 = smoothMesh(new THREE.BoxGeometry(0.20, 0.28, 0.18), M(0x22c55e, { e: 0x16a34a, ei: 0.4 }), [-3.7, 1.28, -3.3]);
   const vGvnt = smoothMesh(new THREE.CylinderGeometry(0.06, 0.06, 1.6, 10), M(0xef4444), [-4.0, 2.0, -3.3]);
-  gFuel.add(vFg1, vFg2, vGvnt);
-  VIEW3D.anim.valves.fg1 = vFg1; VIEW3D.anim.valves.fg2 = vFg2; VIEW3D.anim.valves.gvnt = vGvnt;
-  // Pipe over to GT SAC Combustor
+  gFuel.add(vFg1, vFg1Core, vFg2, vFg2Core, vAct1, vAct2, vGvnt);
+  VIEW3D.anim.valves.fg1 = vAct1; VIEW3D.anim.valves.fg2 = vAct2; VIEW3D.anim.valves.gvnt = vGvnt;
+  VIEW3D.anim.valveCores.fg1 = vFg1Core; VIEW3D.anim.valveCores.fg2 = vFg2Core;
   gFuel.add(smoothMesh(new THREE.CylinderGeometry(0.06, 0.06, 2.9, 12), M(0x10b981), [-3.5, 1.1, -2.0], [Math.PI / 2, 0, 0]));
   tagHit(gFuel, 'fuelSkid');
 
   // =========================================================================
-  // 10. MLO LUBE OIL CONSOLE (10,000L Tank + PM-1101A/B + Filters + SLO)
+  // 10. MLO LUBE OIL CONSOLE — HALF-CUT 10,000L TANK + DUPLEX FILTERS + PUMPS + SLO
   // =========================================================================
   const gLube = makeGroup('lubeConsole');
   gLube.add(smoothMesh(new THREE.BoxGeometry(3.1, 0.24, 2.0), M(0x1e293b), [-0.2, 0.12, 3.9]));
-  gLube.add(smoothMesh(new THREE.BoxGeometry(2.2, 1.25, 1.45), M(0xb45309, { m: 0.6, r: 0.4 }), [-0.45, 0.86, 4.0])); // MLO Reservoir
-  gLube.add(smoothMesh(new THREE.CylinderGeometry(0.26, 0.26, 1.5, 16), M(0xd97706), [0.9, 1.0, 3.6])); // Filter A
-  gLube.add(smoothMesh(new THREE.CylinderGeometry(0.26, 0.26, 1.5, 16), M(0xd97706), [0.9, 1.0, 4.2])); // Filter B
-  gLube.add(smoothMesh(new THREE.CylinderGeometry(0.32, 0.32, 1.0, 16), M(0x0ea5e9), [-2.1, 0.72, 3.8])); // SLO Synthetic Tank
-  // MLO Supply & Return header to Gearbox & 2BCL
+  // Half-Cut 10,000L MLO Reservoir revealing internal Oil Level, Baffle Walls & Electric Heater Coils!
+  addHalfBoxCabinet(gLube, 2.2, 1.25, 1.45, [-0.45, 0.86, 4.0], 0xb45309);
+  gLube.add(smoothMesh(new THREE.BoxGeometry(2.04, 0.72, 1.28), M(0xf59e0b, { t: true, o: 0.68, e: 0x78350f, ei: 0.2 }), [-0.45, 0.62, 4.0])); // Glowing MLO Oil Level!
+  gLube.add(smoothMesh(new THREE.BoxGeometry(0.05, 0.85, 1.2), M(0x94a3b8), [-0.45, 0.75, 4.0])); // Internal Weir Baffle Plate!
+  gLube.add(smoothMesh(new THREE.CylinderGeometry(0.05, 0.05, 0.9, 10), M(0xef4444, { e: 0x991b1b, ei: 0.5 }), [-0.95, 0.48, 4.0], [0, 0, Math.PI / 2])); // H-1101-02 Oil Heater
+
+  // Half-Cut Twin Duplex Oil Filters F-1101A/B-05 revealing Pleated Golden Filter Cartridges inside!
+  [[0.9, 3.6], [0.9, 4.2]].forEach(([fx, fz]) => {
+    addHalfVertVessel(gLube, 0.26, 1.5, [fx, 1.0, fz], 0xd97706, 10);
+    gLube.add(smoothMesh(new THREE.CylinderGeometry(0.15, 0.15, 1.15, 16), M(0xfef08a), [fx, 0.98, fz])); // Pleated oil cartridge
+  });
+  // Half-Cut SLO Synthetic Oil Tank revealing glowing Blue Synthetic Oil + Internal Heater!
+  addHalfVertVessel(gLube, 0.32, 1.0, [-2.1, 0.72, 3.8], 0x0ea5e9, 10);
+  gLube.add(smoothMesh(new THREE.CylinderGeometry(0.26, 0.26, 0.62, 16), M(0x38bdf8, { t: true, o: 0.75 }), [-2.1, 0.56, 3.8])); // SLO oil column
+  gLube.add(smoothMesh(new THREE.CylinderGeometry(0.04, 0.04, 0.35, 10), M(0xf97316), [-2.1, 0.42, 3.8], [0, 0, Math.PI / 2]));
+
   gLube.add(smoothMesh(new THREE.CylinderGeometry(0.075, 0.075, 2.7, 12), M(0xf59e0b), [0.2, 0.9, 2.4], [Math.PI / 2, 0, 0]));
   tagHit(gLube, 'lubeConsole');
 
   // =========================================================================
-  // 11. COMMON LUBE OIL AIR COOLER (3 x 50% Fans = 6 Rotor Assemblies)
+  // 11. COMMON LUBE OIL AIR COOLER — HALF-CUT BUNDLE SHOWING FINNED TUBES & HALF SHROUDS
   // =========================================================================
   const gCooler = makeGroup('lubeCooler');
-  // Steel frame legs
   [[-1.6, -5.6], [2.4, -5.6], [-1.6, -3.5], [2.4, -3.5]].forEach(([cx, cz]) => {
     gCooler.add(smoothMesh(new THREE.BoxGeometry(0.18, 2.8, 0.18), M(0x475569), [cx, 1.4, cz]));
   });
-  // Finned Tube Bundle Header Box
-  gCooler.add(smoothMesh(new THREE.BoxGeometry(4.4, 0.65, 2.45), M(0x334155), [0.4, 2.75, -4.55]));
-  // 3 Fan Shrouds (EM-1101A, B, C) & Animated Blades!
+  // Half-Cut Heat Exchanger Box revealing Copper/Brass Finned Tube Bundle Rows!
+  addHalfBoxCabinet(gCooler, 4.4, 0.68, 2.45, [0.4, 2.75, -4.55], 0x334155);
+  for (let row = 0; row < 2; row++) {
+    for (let z = -0.8; z <= 0.85; z += 0.38) {
+      gCooler.add(smoothMesh(new THREE.CylinderGeometry(0.055, 0.055, 4.1, 10), M(0xd97706, { m: 0.8, r: 0.25 }), [0.4, 2.62 + row * 0.22, -4.55 + z], [0, 0, Math.PI / 2]));
+    }
+  }
+  // 3 Half-Cut Fan Shrouds (EM-1101A, B, C) & Spinning Blades
   [-0.95, 0.4, 1.75].forEach((fx, fi) => {
-    gCooler.add(smoothMesh(new THREE.CylinderGeometry(0.62, 0.68, 0.5, 20), M(0x1e293b), [fx, 3.25, -4.55]));
+    addHalfVertVessel(gCooler, 0.64, 0.50, [fx, 3.25, -4.55], 0x1e293b, 15);
     const rotor = new THREE.Group();
     rotor.position.set(fx, 3.45, -4.55);
     rotor.add(smoothMesh(new THREE.CylinderGeometry(0.12, 0.12, 0.15, 12), M(0x94a3b8), [0, 0, 0]));
@@ -2418,45 +2565,79 @@ function initThreeScene() {
   tagHit(gCooler, 'lubeCooler');
 
   // =========================================================================
-  // 12. PROCESS GAS SCRUBBERS, ASVs (UCV-1101/1501-01) & FLARE BDV STACK
+  // 12. PROCESS GAS SCRUBBERS, ASVs & FLARE STACK — ALL VESSELS & VALVES HALF-CUT!
   // =========================================================================
   const gProc = makeGroup('processGas');
   gProc.add(smoothMesh(new THREE.BoxGeometry(4.2, 0.22, 2.4), M(0x1e293b), [5.2, 0.11, -3.7]));
-  // Suction Scrubber & Interstage / Discharge Drums
-  gProc.add(smoothMesh(new THREE.CylinderGeometry(0.45, 0.45, 2.5, 22), M(0x0284c7), [3.8, 1.5, -3.8])); // Suction Scrubber
-  gProc.add(smoothMesh(new THREE.CylinderGeometry(0.42, 0.42, 2.3, 22), M(0x4f46e5), [5.0, 1.4, -3.8])); // Intercooler drum
-  gProc.add(smoothMesh(new THREE.CylinderGeometry(0.38, 0.38, 2.1, 22), M(0x7c3aed), [6.2, 1.3, -3.8])); // Disch drum
-  // Recycle Pipework & Antisurge Valves ASV-1 (UCV-1101-01) & ASV-2 (UCV-1501-01)
+  // 1) Stg-1 Suction Scrubber V-1102 (Demister Mesh + Inlet Vane + Liquid Boot)
+  addHalfVertVessel(gProc, 0.45, 2.5, [3.8, 1.5, -3.8], 0x0284c7, -20);
+  gProc.add(smoothMesh(new THREE.CylinderGeometry(0.38, 0.38, 0.16, 18), M(0xe2e8f0), [3.8, 2.25, -3.8])); // Mesh Pad
+  gProc.add(smoothMesh(new THREE.CylinderGeometry(0.36, 0.36, 0.52, 18), M(0x06b6d4, { t: true, o: 0.7 }), [3.8, 0.65, -3.8])); // Condensate Sump
+
+  // 2) Interstage Cooler Drum E-1102 (Copper U-Tube Heat Exchanger Bundle + Baffles)
+  addHalfVertVessel(gProc, 0.42, 2.3, [5.0, 1.4, -3.8], 0x4f46e5, -20);
+  [-0.14, 0, 0.14].forEach(bx => {
+    gProc.add(smoothMesh(new THREE.CylinderGeometry(0.04, 0.04, 1.75, 10), M(0xf59e0b), [5.0 + bx, 1.4, -3.8])); // Heat Exchanger Tubes!
+  });
+  gProc.add(smoothMesh(new THREE.CylinderGeometry(0.35, 0.35, 0.05, 16), M(0x94a3b8), [5.0, 1.75, -3.8])); // Baffle plate
+  gProc.add(smoothMesh(new THREE.CylinderGeometry(0.35, 0.35, 0.05, 16), M(0x94a3b8), [5.0, 1.05, -3.8]));
+
+  // 3) Stg-2 Discharge Drum V-1501 (Cyclone Tubes + Demister)
+  addHalfVertVessel(gProc, 0.38, 2.1, [6.2, 1.3, -3.8], 0x7c3aed, -20);
+  gProc.add(smoothMesh(new THREE.CylinderGeometry(0.09, 0.09, 1.25, 12), M(0xc084fc), [6.12, 1.4, -3.8])); // Cyclone tube
+  gProc.add(smoothMesh(new THREE.CylinderGeometry(0.09, 0.09, 1.25, 12), M(0xc084fc), [6.28, 1.4, -3.8]));
+
+  // Half-Cut ASV-1 (UCV-1101-01) & ASV-2 (UCV-1501-01) Cage Valves showing Live Lifting Plugs!
   gProc.add(smoothMesh(new THREE.CylinderGeometry(0.11, 0.11, 3.6, 14), M(0x38bdf8), [3.3, 2.6, -2.0], [Math.PI / 2, 0, 0]));
   gProc.add(smoothMesh(new THREE.CylinderGeometry(0.10, 0.10, 3.6, 14), M(0xa78bfa), [4.3, 2.6, -2.0], [Math.PI / 2, 0, 0]));
-  const asv1Mesh = smoothMesh(new THREE.CylinderGeometry(0.18, 0.18, 0.42, 16), M(0xf59e0b, { e: 0x78350f, ei: 0.3 }), [3.3, 2.95, -2.6]);
-  const asv2Mesh = smoothMesh(new THREE.CylinderGeometry(0.18, 0.18, 0.42, 16), M(0xf59e0b, { e: 0x78350f, ei: 0.3 }), [4.3, 2.95, -2.6]);
-  gProc.add(asv1Mesh, asv2Mesh);
-  VIEW3D.anim.asvStems.push(asv1Mesh, asv2Mesh);
-  // Flare BDV Stack (BDV-1103 / 1501A/B) rising to Y = 7.4!
-  gProc.add(smoothMesh(new THREE.CylinderGeometry(0.22, 0.28, 6.2, 18), M(0x475569), [6.8, 3.1, -3.2]));
+  [3.3, 4.3].forEach(vx => {
+    addHalfVertVessel(gProc, 0.19, 0.44, [vx, 2.95, -2.6], 0xf59e0b, 15);
+    const plug = smoothMesh(new THREE.CylinderGeometry(0.10, 0.12, 0.24, 14), M(0xfef08a, { m: 0.9, r: 0.2 }), [vx, 2.86, -2.6]);
+    gProc.add(plug);
+    VIEW3D.anim.asvPlugs.push(plug);
+    VIEW3D.anim.asvStems.push(plug);
+  });
+
+  // Flare BDV Stack (Lower knock-out base cutaway showing internal flare header riser!)
+  addHalfVertVessel(gProc, 0.28, 1.6, [6.8, 0.95, -3.2], 0x475569, 20);
+  gProc.add(smoothMesh(new THREE.CylinderGeometry(0.12, 0.12, 1.4, 12), M(0xef4444), [6.8, 0.95, -3.2])); // Internal Flare Riser
+  gProc.add(smoothMesh(new THREE.CylinderGeometry(0.22, 0.27, 4.5, 18), M(0x475569), [6.8, 4.0, -3.2]));
   gProc.add(smoothMesh(new THREE.CylinderGeometry(0.32, 0.22, 0.35, 18), M(0xef4444, { e: 0x7f1d1d, ei: 0.5 }), [6.8, 6.3, -3.2]));
   tagHit(gProc, 'processGas');
 
   // =========================================================================
-  // 13. WATER WASH SKID (Crank & Online Wash Tank + Pump)
+  // 13. WATER WASH SKID — HALF-CUT TANK (FLUID + HEATER) & PUMP IMPELLER
   // =========================================================================
   const gWash = makeGroup('waterWash');
   gWash.add(smoothMesh(new THREE.BoxGeometry(1.4, 0.18, 1.1), M(0x1e293b), [-6.9, 0.09, 2.9]));
-  gWash.add(smoothMesh(new THREE.CylinderGeometry(0.36, 0.36, 1.35, 18), M(0x06b6d4), [-7.1, 0.85, 2.9]));
-  gWash.add(smoothMesh(new THREE.BoxGeometry(0.45, 0.55, 0.45), M(0x38bdf8), [-6.5, 0.45, 2.9]));
+  addHalfVertVessel(gWash, 0.36, 1.35, [-7.1, 0.85, 2.9], 0x06b6d4, 10);
+  gWash.add(smoothMesh(new THREE.CylinderGeometry(0.30, 0.30, 0.85, 16), M(0x38bdf8, { t: true, o: 0.72 }), [-7.1, 0.68, 2.9])); // Detergent solution level
+  gWash.add(smoothMesh(new THREE.CylinderGeometry(0.04, 0.04, 0.45, 10), M(0xf97316), [-7.1, 0.40, 2.9], [0, 0, Math.PI / 2]));
+  // Half-Cut Wash Pump Housing showing Brass Impeller
+  addHalfBoxCabinet(gWash, 0.46, 0.52, 0.46, [-6.48, 0.45, 2.9], 0x38bdf8);
+  gWash.add(smoothMesh(new THREE.CylinderGeometry(0.16, 0.16, 0.10, 14), M(0xfacc15), [-6.48, 0.45, 2.9], [Math.PI / 2, 0, 0]));
   tagHit(gWash, 'waterWash');
 
   // =========================================================================
-  // 14. UCP CONTROL CABINET (MKVIe / MKVIeS SIL 2 / Orbit 60 + ESD PBs)
+  // 14. UCP CONTROL CABINET — HALF-OPEN FRONT REVEALING MKVIe / MKVIeS SIL 2 / ORBIT 60
   // =========================================================================
   const gUcp = makeGroup('ucp');
-  gUcp.add(smoothMesh(new THREE.BoxGeometry(1.75, 2.15, 0.95), M(0x334155, { m: 0.5, r: 0.4 }), [6.9, 1.08, 2.8]));
-  // Backlit iHMI & Orbit 60 Screens
-  gUcp.add(smoothMesh(new THREE.PlaneGeometry(0.85, 0.55), M(0x0ea5e9, { e: 0x0284c7, ei: 0.9 }), [6.9, 1.48, 2.31], [0, Math.PI, 0]));
-  // Red Mushroom ESD Pushbuttons XS-3741 / XS-3742!
-  gUcp.add(smoothMesh(new THREE.CylinderGeometry(0.08, 0.08, 0.08, 14), M(0xef4444, { e: 0xdc2626, ei: 0.8 }), [6.4, 1.25, 2.29], [Math.PI / 2, 0, 0]));
-  gUcp.add(smoothMesh(new THREE.CylinderGeometry(0.08, 0.08, 0.08, 14), M(0xf59e0b, { e: 0xd97706, ei: 0.7 }), [7.4, 1.25, 2.29], [Math.PI / 2, 0, 0]));
+  addHalfBoxCabinet(gUcp, 1.75, 2.15, 0.95, [6.9, 1.08, 2.8], 0x334155);
+  // Internal Backplane + Triple-Modular Redundant Controllers inside UCP!
+  gUcp.add(smoothMesh(new THREE.BoxGeometry(1.45, 1.85, 0.05), M(0x064e3b), [6.9, 1.12, 2.42])); // PCB Backplane
+  // Row 1: 3x GE Mark VIe BPCS Racks (Cyan) + Mark VIeS SIL 2 / YSIL Safety Rack (Red/Amber)
+  [6.35, 6.65, 6.95].forEach(rx => {
+    gUcp.add(smoothMesh(new THREE.BoxGeometry(0.22, 0.42, 0.35), M(0x0ea5e9, { e: 0x0284c7, ei: 0.5 }), [rx, 1.55, 2.68]));
+  });
+  gUcp.add(smoothMesh(new THREE.BoxGeometry(0.32, 0.42, 0.35), M(0xef4444, { e: 0xb91c1c, ei: 0.6 }), [7.38, 1.55, 2.68])); // MKVIeS SIL 2
+  // Row 2: Bently Nevada Orbit 60 Rack (Green LEDs) + 110 VDC Chargers
+  gUcp.add(smoothMesh(new THREE.BoxGeometry(0.75, 0.36, 0.35), M(0x22c55e, { e: 0x15803d, ei: 0.4 }), [6.65, 1.0, 2.68]));
+  gUcp.add(smoothMesh(new THREE.BoxGeometry(0.55, 0.36, 0.35), M(0xf59e0b), [7.35, 1.0, 2.68]));
+  // Exterior HMI Screen & Hardwired ESD PBs XS-3741/3742 mounted on side console pedestal!
+  gUcp.add(smoothMesh(new THREE.BoxGeometry(0.85, 0.58, 0.14), M(0x1e293b), [6.9, 1.85, 2.28]));
+  gUcp.add(smoothMesh(new THREE.PlaneGeometry(0.76, 0.48), M(0x0ea5e9, { e: 0x0284c7, ei: 0.9 }), [6.9, 1.85, 2.20], [0, Math.PI, 0]));
+  gUcp.add(smoothMesh(new THREE.CylinderGeometry(0.08, 0.08, 0.08, 14), M(0xef4444, { e: 0xdc2626, ei: 0.8 }), [6.4, 1.35, 2.26], [Math.PI / 2, 0, 0]));
+  gUcp.add(smoothMesh(new THREE.CylinderGeometry(0.08, 0.08, 0.08, 14), M(0xf59e0b, { e: 0xd97706, ei: 0.7 }), [7.4, 1.35, 2.26], [Math.PI / 2, 0, 0]));
   tagHit(gUcp, 'ucp');
 
   // =========================================================================
@@ -2505,7 +2686,7 @@ function initThreeScene() {
   createStream('dgsN2', 45, 0x67e8f9, 0.12, (u) => [3.1 + (Math.random() - 0.5) * 0.5, 1.4 + u * 0.85, 3.5 - u * 3.05]);
   createStream('waterMist', 140, 0xe0f2fe, 0.19, () => [-3.4 + (Math.random() - 0.5) * 4.3, 1.0 + Math.random() * 2.5, (Math.random() - 0.5) * 2.2]);
 
-  // 3D Projected HTML Labels (exact CSS classes .tag-3d / .t-top / .t-name / .t-tag / .t-sub)
+  // 3D Projected HTML Labels
   const labelsContainer = document.getElementById('three-labels');
   labelsContainer.innerHTML = '';
   MEC002_DATA.components.forEach(c => {
@@ -2580,14 +2761,14 @@ function applyEnclosureVisuals() {
   });
   if (VIEW3D.cutaway) {
     VIEW3D.anim.enclFrontPanels.forEach(mesh => { mesh.visible = false; });
-    if (VIEW3D.anim.compBarrelCut) {
-      VIEW3D.anim.compBarrelCut.material.opacity = 0.28;
-    }
+    if (VIEW3D.anim.compBarrelCut) VIEW3D.anim.compBarrelCut.material.opacity = 0.88;
   } else {
-    if (VIEW3D.anim.compBarrelCut) {
-      VIEW3D.anim.compBarrelCut.material.opacity = 0.72;
-    }
+    if (VIEW3D.anim.compBarrelCut) VIEW3D.anim.compBarrelCut.material.opacity = 0.95;
   }
+  // Toggle ALL 14 50%-Cutaway Front Covers (Hidden in Cutaway Mode, Visible in Solid Mode!)
+  VIEW3D.anim.cutCovers.forEach(cov => {
+    cov.visible = !VIEW3D.cutaway;
+  });
 }
 
 function setEnclosureMode(mode) {
@@ -2605,7 +2786,7 @@ function toggleCutaway() {
 
 function setExplode(val) {
   let num = parseFloat(val) || 0;
-  if (num > 1) num = num / 100; // Slider sends 0..100
+  if (num > 1) num = num / 100;
   VIEW3D.explode = Math.max(0, Math.min(1, num));
   document.getElementById('explodeVal').textContent = `${Math.round(VIEW3D.explode * 100)}%`;
 }
@@ -2636,12 +2817,12 @@ function setCameraPreset(p) {
   if (!VIEW3D.ready) return;
   const presets = {
     overview:   { t: [-0.3, 2.4, 0.2],   th: -0.78, ph: 1.06, d: 17.5 },
-    gt:         { t: [-3.3, 2.3, 0.0],   th: -0.62, ph: 1.15, d: 8.6 },
+    gt:         { t: [-3.8, 2.4, 0.0],   th: -0.62, ph: 1.12, d: 8.8 },
     gearbox:    { t: [0.25, 2.25, 0.22], th: -0.45, ph: 1.02, d: 5.5 },
     compressor: { t: [3.4, 2.25, 0.45],  th: -0.75, ph: 1.12, d: 7.2 },
     dgs:        { t: [3.2, 1.5, 2.1],    th: -0.52, ph: 1.05, d: 6.8 },
-    cooler:     { t: [0.3, 2.0, -4.1],   th: 2.35,  ph: 1.05, d: 8.5 },
-    process:    { t: [4.8, 2.2, -3.2],   th: 2.55,  ph: 1.05, d: 9.2 }
+    cooler:     { t: [0.4, 2.2, -4.4],   th: -0.55, ph: 1.04, d: 7.4 },
+    process:    { t: [5.0, 1.8, -3.2],   th: -0.58, ph: 1.04, d: 7.8 }
   };
   if (presets[p]) VIEW3D.targetCam = presets[p];
 }
@@ -2660,7 +2841,6 @@ function updateThreeScene(dt) {
   if (!VIEW3D.ready) return;
   const a = VIEW3D.anim;
 
-  // Smooth camera transition or auto-orbit
   if (VIEW3D.targetCam) {
     const tc = VIEW3D.targetCam;
     VIEW3D.camTarget.x += (tc.t[0] - VIEW3D.camTarget.x) * Math.min(1, dt * 4.5);
@@ -2683,17 +2863,15 @@ function updateThreeScene(dt) {
 
   if (!SIM.paused) {
     const m = SIM.speedMult;
-    // Mechanical Multi-Shaft Rotations (Scaled visually so human eye distinguishes CCW vs CW & 1:2.594 ratio!)
     const wGG = (SIM.ngg / 9800) * 14.0 * dt * m;
     const wPT = (SIM.npt / 3600) * 6.5 * dt * m;
-    const wComp = -(SIM.ncc / 9321) * 16.8 * dt * m; // Negative X = CW when viewed looking along +X!
-    a.ggRotors.forEach(r => r.rotation.x += wGG);     // +X = CCW!
-    a.ptRotors.forEach(r => r.rotation.x += wPT);     // +X = CCW!
-    if (a.gearBull) a.gearBull.rotation.x += wPT;     // Bull Gear = CCW!
-    if (a.gearPinion) a.gearPinion.rotation.x += wComp; // Pinion = CW (-X)!
-    if (a.compRotor) a.compRotor.rotation.x += wComp;   // 2BCL456/A = CW (-X)!
+    const wComp = -(SIM.ncc / 9321) * 16.8 * dt * m;
+    a.ggRotors.forEach(r => r.rotation.x += wGG);
+    a.ptRotors.forEach(r => r.rotation.x += wPT);
+    if (a.gearBull) a.gearBull.rotation.x += wPT;
+    if (a.gearPinion) a.gearPinion.rotation.x += wComp;
+    if (a.compRotor) a.compRotor.rotation.x += wComp;
 
-    // Air Cooler Fans & Enclosure Vent Fans
     [0, 1, 2].forEach(i => {
       const k = i === 0 ? 'EM1A' : i === 1 ? 'EM1B' : 'EM1C';
       const spd = SIM.equip[k] === 'RUN' ? 8.5 * dt * m : 0;
@@ -2712,10 +2890,16 @@ function updateThreeScene(dt) {
   if (a.compBundle) a.compBundle.position.x = 3.15 + ex * 3.45;
   if (a.enclAllPanels[0]) a.enclAllPanels[0].position.y = 3.85 + ex * 1.65;
 
-  // WHRU Diverter Blade position (0 = Vertical Bypass, 1.15 rad = WHRU Side Duct)
+  // WHRU Diverter Blade position (0 = Vertical Bypass, 1.12 rad = WHRU Side Duct)
   if (a.whruBlade) {
     const tgt = SIM.whruMode === 'WHRU' ? 1.12 : 0.0;
     a.whruBlade.rotation.x += (tgt - a.whruBlade.rotation.x) * Math.min(1, dt * 4);
+  }
+
+  // Live lifting valve plugs inside half-cut ASV-1 / ASV-2 control valves
+  if (a.asvPlugs.length >= 2) {
+    a.asvPlugs[0].position.y = 2.84 + (SIM.asv1Pos / 100) * 0.22;
+    a.asvPlugs[1].position.y = 2.84 + (SIM.asv2Pos / 100) * 0.22;
   }
 
   // Fire Dampers XV-1101-12
@@ -2732,9 +2916,11 @@ function updateThreeScene(dt) {
     a.flameCore.material.emissiveIntensity = lit ? (1.2 + Math.sin(SIM.timeSec * 14) * 0.3) : 0.0;
   }
 
-  // Fuel Gas DBB LED Colors
+  // Fuel Gas DBB LED & Internal Valve Ball Colors
   if (a.valves.fg1) a.valves.fg1.material.color.setHex(SIM.fg1Open ? 0x22c55e : 0xef4444);
   if (a.valves.fg2) a.valves.fg2.material.color.setHex(SIM.fg2Open ? 0x22c55e : 0xef4444);
+  if (a.valveCores.fg1) a.valveCores.fg1.material.color.setHex(SIM.fg1Open ? 0x22c55e : 0xef4444);
+  if (a.valveCores.fg2) a.valveCores.fg2.material.color.setHex(SIM.fg2Open ? 0x22c55e : 0xef4444);
   if (a.valves.gvnt) a.valves.gvnt.material.color.setHex(SIM.gvntOpen ? 0xf59e0b : 0x334155);
 
   // Fire / Gas / Water Mist / Flare Effects
