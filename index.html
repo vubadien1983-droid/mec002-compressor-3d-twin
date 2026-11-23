@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -512,11 +512,11 @@ canvas.polar-canvas {
     </div>
 
     <div class="topbar-controls">
-      <select id="unitSelect" class="ctrl-select" onchange="selectUnit(this.value)" title="Chọn Train Máy nén (Khoảng cách tim 11,500 mm)">
+      <select id="unitSelect" class="ctrl-select" onchange="selectUnit(this.value)" title="Select Compressor Train (Centerline Spacing 11,500 mm)">
         <option value="1101">PK-1101 (Train 1 · Right)</option>
         <option value="2101">PK-2101 (Train 2 · Left)</option>
       </select>
-      <select id="caseSelectOp" class="ctrl-select" onchange="setOperatingCase(this.value)" title="Chọn điểm làm việc thiết kế (SOS046910288)">
+      <select id="caseSelectOp" class="ctrl-select" onchange="setOperatingCase(this.value)" title="Select Design Operating Case (SOS046910288)">
         <option value="CASE2" selected>Case 2 High C1 (9321 rpm)</option>
         <option value="CASE1">Case 1 High LPG (9336 rpm)</option>
         <option value="CASE3">Case 3 High Inert (9336 rpm)</option>
@@ -524,14 +524,14 @@ canvas.polar-canvas {
         <option value="CASE5">Case 5 Hi-Temp (8248 rpm)</option>
       </select>
       <span id="statePill" class="state-pill state-run">ON LOAD · AUTO</span>
-      <div class="speed-group" title="Tốc độ mô phỏng">
+      <div class="speed-group" title="Simulation Speed">
         <button class="speed-btn active" onclick="setSimSpeed(1,this)">1x</button>
         <button class="speed-btn" onclick="setSimSpeed(2,this)">2x</button>
         <button class="speed-btn" onclick="setSimSpeed(5,this)">5x</button>
       </div>
-      <button class="btn btn-green" onclick="cmdStartSequence()" title="Khởi động Depressurized (Purge N2/Gas -> Crank 2250 -> Idle 6800 -> MOS -> 9321 rpm)">▶ Start</button>
-      <button class="btn btn-amber" onclick="cmdNormalShutdown()" title="Dừng bình thường (SD): Giảm tải -> Idle Cooldown -> Đóng FG -> Đóng SDVs (Giữ áp) -> Slow Turn">■ Stop (SD)</button>
-      <button class="btn btn-red" onclick="cmdEsdWithVent()" title="Nút ESD cứng (HS-1101A/B-02): ESN + Mở Flare BDV-1103/1501A/B + FG Depress">⏻ ESD</button>
+      <button class="btn btn-green" onclick="cmdStartSequence()" title="Depressurized Startup Sequence (Purge N2/Gas -> Crank 2250 -> Idle 6800 -> MOS -> 9321 rpm)">▶ Start</button>
+      <button class="btn btn-amber" onclick="cmdNormalShutdown()" title="Normal Shutdown (SD): Unload -> Idle Cooldown -> Close FG -> Close SDVs (Pressurized Hold) -> Slow Turn">■ Stop (SD)</button>
+      <button class="btn btn-red" onclick="cmdEsdWithVent()" title="Hardwired ESD Pushbutton (HS-1101A/B-02): ESN + Open Flare BDV-1103/1501A/B + FG Depress">⏻ ESD</button>
     </div>
   </header>
 
@@ -568,40 +568,40 @@ canvas.polar-canvas {
         <svg id="three-leaders"></svg>
         <div id="three-labels"></div>
         <div id="three-fallback">
-          <strong style="color:#f59e0b;font-size:14px;">Không tải được thư viện Three.js từ CDN</strong>
-          <span>Chế độ 2D MKVIe iHMI &amp; Ma trận C&amp;E vẫn hoạt động 100% offline. Chuyển sang tab "3. MKVIe iHMI".</span>
+          <strong style="color:#f59e0b;font-size:14px;">Unable to load Three.js WebGL library from CDN</strong>
+          <span>2D MKVIe iHMI &amp; C&amp;E Matrix mode operates 100% offline. Switch to tab "3. MKVIe iHMI".</span>
         </div>
 
         <div class="hud-3d-top">
           <div class="hud-group">
-            <span class="hud-label">Vỏ:</span>
-            <button class="btn btn-sm" id="btnEnclSolid" onclick="setEnclosureMode('solid')">Đóng</button>
+            <span class="hud-label">Encl:</span>
+            <button class="btn btn-sm" id="btnEnclSolid" onclick="setEnclosureMode('solid')">Solid</button>
             <button class="btn btn-sm active-toggle" id="btnEnclXray" onclick="setEnclosureMode('xray')">X-Ray</button>
-            <button class="btn btn-sm" id="btnEnclHide" onclick="setEnclosureMode('hide')">Ẩn</button>
+            <button class="btn btn-sm" id="btnEnclHide" onclick="setEnclosureMode('hide')">Hide</button>
           </div>
           <div class="hud-group">
-            <button class="btn btn-sm active-toggle" id="btnCutaway" onclick="toggleCutaway()">✂ Cắt bổ</button>
-            <span class="hud-label" style="margin-left:2px;">Rút ruột / Tách:</span>
+            <button class="btn btn-sm active-toggle" id="btnCutaway" onclick="toggleCutaway()">✂ Cutaway</button>
+            <span class="hud-label" style="margin-left:2px;">Extract / Explode:</span>
             <input type="range" id="explodeSlider" class="mini-slider" min="0" max="100" value="0" oninput="setExplode(this.value)" style="width:62px;" />
             <span id="explodeVal" style="font-family:var(--mono);font-size:9.5px;width:28px;">0%</span>
           </div>
           <div class="hud-group">
-            <button class="btn btn-sm active-toggle" id="btnParticles" onclick="toggleParticles()">✦ Dòng</button>
-            <button class="btn btn-sm active-toggle" id="btnLabels" onclick="toggleLabels()">🏷 Tag 3D</button>
-            <button class="btn btn-sm" id="btnPauseSim" onclick="togglePauseSim()" title="Tạm dừng / Tiếp tục">⏸</button>
-            <button class="btn btn-sm" id="btnAutoOrbit" onclick="toggleAutoOrbit()" title="Tự động xoay 3D">🔄</button>
-            <select id="caseSelect" class="ctrl-select" onchange="activateGuidedCase(this.value)" title="Chọn Case để xem hướng dẫn & Cause-Effect" style="max-width:175px;height:24px;padding:1px 6px;font-size:10px;">
-              <option value="">📖 Chọn Case hướng dẫn (10)...</option>
+            <button class="btn btn-sm active-toggle" id="btnParticles" onclick="toggleParticles()">✦ Flows</button>
+            <button class="btn btn-sm active-toggle" id="btnLabels" onclick="toggleLabels()">🏷 3D Tags</button>
+            <button class="btn btn-sm" id="btnPauseSim" onclick="togglePauseSim()" title="Pause / Resume">⏸</button>
+            <button class="btn btn-sm" id="btnAutoOrbit" onclick="toggleAutoOrbit()" title="Auto-Orbit 3D">🔄</button>
+            <select id="caseSelect" class="ctrl-select" onchange="activateGuidedCase(this.value)" title="Select Case for Guided Cause-Effect Walkthrough" style="max-width:190px;height:24px;padding:1px 6px;font-size:10px;">
+              <option value="">📖 Guided Cases &amp; C&amp;E (10)...</option>
               <option value="OP1">▶ OP-1: Depressurized Start (Step 1→4)</option>
               <option value="OP2">🌊 OP-2: Antisurge &amp; Hot Gas Bypass</option>
               <option value="OP3">🔀 OP-3: WHRU Diverter &amp; Purge (SIF.05)</option>
               <option value="OP4">■ OP-4: Normal SD → Slow Turn 100 rpm</option>
-              <option value="CH1">⛽ CH-1: Rò Gas 10% LEL (ESN + Giữ quạt)</option>
-              <option value="CH2">💨 CH-2: Mất ΔP Vỏ SIF.07 (Chuyển 88BA-2)</option>
-              <option value="CH3">🌡 CH-3: Trip Quạt Cooler EM-1101A (MLO Hi)</option>
-              <option value="CH4">⚠ CH-4: Vỡ Phớt DGS Vent HH (ESN+VENT Flare)</option>
-              <option value="CH5">🔥 CH-5: Cháy IR3/Heat → 30s → Water Mist</option>
-              <option value="CH6">⚡ CH-6: Rung Orbit 60 (2oo4) vs ESD Lockout</option>
+              <option value="CH1">⛽ CH-1: Gas Leak 10% LEL (ESN + Keep 88BA Fans)</option>
+              <option value="CH2">💨 CH-2: Encl ΔP Loss SIF.07 (Swap 88BA-2)</option>
+              <option value="CH3">🌡 CH-3: MLO Cooler Fan Trip EM-1101A (Oil Hi)</option>
+              <option value="CH4">⚠ CH-4: DGS Primary Vent HH (ESN+VENT Flare)</option>
+              <option value="CH5">🔥 CH-5: IR3/Heat Fire → 30s → Water Mist</option>
+              <option value="CH6">⚡ CH-6: Orbit 60 Vibration (2oo4) &amp; YSIL Lockout</option>
             </select>
           </div>
         </div>
@@ -610,22 +610,22 @@ canvas.polar-canvas {
         <div id="caseGuideCard" class="case-guide hidden"></div>
 
         <div class="hud-3d-cams">
-          <button class="btn btn-sm" onclick="setCameraPreset('overview')">Tổng thể</button>
+          <button class="btn btn-sm" onclick="setCameraPreset('overview')">Overview</button>
           <button class="btn btn-sm" onclick="setCameraPreset('gt')">LM2500+G4</button>
           <button class="btn btn-sm" onclick="setCameraPreset('gearbox')">Lufkin NF2219E</button>
-          <button class="btn btn-sm" onclick="setCameraPreset('compressor')">2BCL456/A (6 Cánh)</button>
-          <button class="btn btn-sm" onclick="setCameraPreset('dgs')">Phớt DGS &amp; Skid</button>
+          <button class="btn btn-sm" onclick="setCameraPreset('compressor')">2BCL456/A (6-Imp)</button>
+          <button class="btn btn-sm" onclick="setCameraPreset('dgs')">DGS &amp; Seal Skid</button>
           <button class="btn btn-sm" onclick="setCameraPreset('cooler')">MLO &amp; Air Cooler</button>
           <button class="btn btn-sm" onclick="setCameraPreset('process')">Scrubber/ASV/Flare</button>
         </div>
 
         <div class="hud-3d-legend">
-          <span><i class="leg-dot" style="background:#38bdf8"></i>Khí nạp/Cháy</span>
-          <span><i class="leg-dot" style="background:#14b8a6"></i>Gas Cấp 1 (77.6b)</span>
-          <span><i class="leg-dot" style="background:#3b82f6"></i>Gas Cấp 2 (141.2b)</span>
+          <span><i class="leg-dot" style="background:#38bdf8"></i>Air / Combustion</span>
+          <span><i class="leg-dot" style="background:#14b8a6"></i>Gas Stg-1 (77.6b)</span>
+          <span><i class="leg-dot" style="background:#3b82f6"></i>Gas Stg-2 (141.2b)</span>
           <span><i class="leg-dot" style="background:#a78bfa"></i>ASV Recycle</span>
           <span><i class="leg-dot" style="background:#22c55e"></i>Fuel Gas</span>
-          <span><i class="leg-dot" style="background:#eab308"></i>Dầu MLO</span>
+          <span><i class="leg-dot" style="background:#eab308"></i>MLO Lube Oil</span>
           <span><i class="leg-dot" style="background:#bae6fd"></i>DGS N₂ / Mist</span>
           <span><i class="leg-dot" style="background:#ef4444"></i>Flare BDV</span>
         </div>
@@ -663,31 +663,31 @@ canvas.polar-canvas {
     <!-- === PANE 2: 3D ANATOMY INSPECTOR (Visible in Mode 1) === -->
     <aside id="pane-inspector">
       <div class="panel-hdr">
-        <span>🔍 CẤU TẠO, KÍCH THƯỚC &amp; NGUYÊN LÝ (MEC002)</span>
-        <span style="font-family:var(--mono);font-size:9.5px;color:var(--muted);">Click 3D hoặc tag</span>
+        <span>🔍 ANATOMY, DIMENSIONS &amp; PRINCIPLES (MEC002)</span>
+        <span style="font-family:var(--mono);font-size:9.5px;color:var(--muted);">Click 3D mesh or tag</span>
       </div>
       <div class="inspector-body">
         <div id="compChips" class="comp-chip-list"></div>
         <div id="inspectorDetail" class="spec-card"></div>
         <div class="spec-card">
-          <h4>Điều khiển Tương tác Nhanh (Anatomy Mode)</h4>
+          <h4>Quick Interactive Controls (Anatomy Mode)</h4>
           <div class="fp-row" style="margin-top:6px;">
-            <span style="color:var(--muted);">Tốc độ Máy nén NCC (rpm):</span>
+            <span style="color:var(--muted);">Compressor Speed NCC (rpm):</span>
             <input type="range" id="anatSpeedSlider" min="6535" max="9803" step="10" value="9321" style="width:110px;accent-color:var(--green);" oninput="setTargetSpeed(parseFloat(this.value))" />
             <span id="anatSpeedVal" style="font-family:var(--mono);font-weight:700;">9321</span>
           </div>
           <div class="fp-row">
-            <span style="color:var(--muted);">Nghẽn đầu ra (Thử Surge):</span>
+            <span style="color:var(--muted);">Discharge Choke (Surge Test):</span>
             <input type="range" id="anatChokeSlider" min="0" max="85" step="5" value="0" style="width:110px;accent-color:var(--amber);" oninput="setDischargeChoke(parseFloat(this.value))" />
             <span id="anatChokeVal" style="font-family:var(--mono);font-weight:700;">0%</span>
           </div>
           <div class="fp-row">
-            <span style="color:var(--muted);">Rút ruột 2BCL456/A (7,237 kg):</span>
-            <button class="btn btn-sm btn-cyan" onclick="document.getElementById('explodeSlider').value=90;setExplode(90);setCameraPreset('compressor')">⇄ Kéo Bundle</button>
-            <button class="btn btn-sm" onclick="document.getElementById('explodeSlider').value=0;setExplode(0)">↺ Thu lại</button>
+            <span style="color:var(--muted);">2BCL456/A Bundle Extraction (7,237 kg):</span>
+            <button class="btn btn-sm btn-cyan" onclick="document.getElementById('explodeSlider').value=90;setExplode(90);setCameraPreset('compressor')">⇄ Pull Bundle</button>
+            <button class="btn btn-sm" onclick="document.getElementById('explodeSlider').value=0;setExplode(0)">↺ Retract</button>
           </div>
           <div class="fp-row" style="margin-bottom:0;">
-            <span style="color:var(--muted);">Kiểm tra C&amp;E nhanh:</span>
+            <span style="color:var(--muted);">Quick C&amp;E Trips:</span>
             <div style="display:flex;gap:4px;">
               <button class="btn btn-sm btn-red" onclick="activateGuidedCase('CH5')">🔥 Water Mist</button>
               <button class="btn btn-sm btn-amber" onclick="activateGuidedCase('CH4')">⚠ DGS Vent Flare</button>
@@ -704,7 +704,7 @@ canvas.polar-canvas {
         <button class="dcs-tab" data-tab="process" onclick="setDcsTab('process')">2. Process &amp; Antisurge</button>
         <button class="dcs-tab" data-tab="dgs" onclick="setDcsTab('dgs')">3. DGS &amp; Seal Gas</button>
         <button class="dcs-tab" data-tab="lube" onclick="setDcsTab('lube')">4. MLO/SLO &amp; F&amp;G</button>
-        <button class="dcs-tab" data-tab="cematrix" onclick="setDcsTab('cematrix')">🔗 Ma trận C&amp;E (426)</button>
+        <button class="dcs-tab" data-tab="cematrix" onclick="setDcsTab('cematrix')">🔗 C&amp;E Matrix (426)</button>
         <button class="dcs-tab tab-fault" data-tab="faults" onclick="setDcsTab('faults')">⚡ Cases &amp; Faults (10)</button>
       </div>
 
@@ -749,7 +749,7 @@ canvas.polar-canvas {
               </div>
             </div>
             <div class="fp-row">
-              <span style="font-size:10px;color:var(--muted);">CHẾ ĐỘ &amp; WHRU:</span>
+              <span style="font-size:10px;color:var(--muted);">MODE &amp; WHRU:</span>
               <div style="display:flex;gap:3px;">
                 <button class="btn btn-sm btn-cyan" id="btnWhruMode" onclick="cmdToggleWhru()">WHRU: BYPASS</button>
                 <button class="btn btn-sm btn-amber" id="btnSurgeTest" onclick="cmdSurgePulse()">⚡ Choke/Surge</button>
@@ -779,7 +779,7 @@ canvas.polar-canvas {
           <!-- Faceplate 2: Aux Equipment Start/Stop -->
           <div class="fp-box">
             <div class="fp-title">
-              <span>⚙ THIẾT BỊ PHỤ TRỢ (START / STOP / SWAP)</span>
+              <span>⚙ AUXILIARY EQUIPMENT (START / STOP / SWAP)</span>
               <span style="font-size:9px;color:var(--muted);">3×50% MLO · 2×100% Vent</span>
             </div>
             <div id="auxEquipList"></div>
@@ -788,7 +788,7 @@ canvas.polar-canvas {
           <!-- Real-Time Multi-Channel Trend -->
           <div class="fp-box">
             <div class="fp-title">
-              <span>📈 TREND · 2 PHÚT</span>
+              <span>📈 TREND · 2 MIN</span>
               <span style="font-size:9px;font-family:var(--mono);">
                 <b style="color:#38bdf8">NGG</b> · <b style="color:#22c55e">NCC</b> · <b style="color:#a78bfa">P4 Disch</b> · <b style="color:#f97316">T48</b>
               </span>
@@ -868,256 +868,256 @@ const MEC002_DATA = {
   },
   components: [
     {
-      id: "filterHouse", shortName: "Nhà Lọc gió", tag: "FILTER HOUSE", name: "Cụm Lọc Gió Đầu Vào & Quạt Thông Gió (Filter House)", pidSheet: "D01-00001 · Sh. 18",
+      id: "filterHouse", shortName: "Air Filter House", tag: "FILTER HOUSE", name: "Combustion Air Intake Filter House & Plenum", pidSheet: "D01-00001 · Sh. 18",
       pos3d: [-6.4, 5.1, 0], relatedCase: "OP1", reverseKeys: ["PDIT-1101", "GD-1101A-03", "ZSC-1101-16"],
-      role: "Cung cấp khí sạch không hơi muối biển ở cao độ +9,500 mm T.O.S. (+43,000 mm) cho máy nén hướng trục 17 cấp của LM2500+G4, chịu tải nổ 0.03 barg.",
+      role: "Supplies salt-free, clean combustion air at Elevation +9,500 mm T.O.S. (+43,000 mm) to the 17-stage axial compressor of the LM2500+G4, rated for a 0.03 barg blast load.",
       features: [
-        "Giám sát chênh áp qua sơ lọc PDIT-1101-10, tinh lọc PDIT-1101-09 và chênh áp khí quyển PDIT-1101A/B (96TF-1A/B).",
-        "Tích hợp 3 đầu dò khí cháy 3oo3 tại cửa hút GD-1101A/B/C-03 (45HF-1..3) theo SIF.15.",
-        "Công tắc cửa ZSC-1101-16 khóa khởi động nếu cửa nhà lọc chưa đóng kín."
+        "Monitors differential pressure across pre-filters (PDIT-1101-10), fine filters (PDIT-1101-09), and ambient ΔP transmitters PDIT-1101A/B (96TF-1A/B).",
+        "Houses 3oo3 catalytic gas detectors at the air intake (GD-1101A/B/C-03, 45HF-1..3) governed by SIF.15.",
+        "Access door limit switch ZSC-1101-16 inhibits startup unless the filter house inspection door is fully latched."
       ],
-      ceLinks: { cause: "Tắc lọc tinh PDIT-1101A/B ≥ HH hoặc Gas cửa hút 2oo3 GD-1101-03 ≥ 15% LEL (SIF.15)", effect: "PDIT HH -> Normal SD; 15% LEL 2oo3 -> ESN + FG Depress + Cắt quạt 88BA-1/2" },
+      ceLinks: { cause: "Fine Filter PDIT-1101A/B ≥ HH OR Intake Gas 2oo3 GD-1101-03 ≥ 15% LEL (SIF.15)", effect: "PDIT HH -> Normal SD; 15% LEL 2oo3 -> ESN + FG Depress + Trip Encl Vent Fans 88BA-1/2" },
       specs: [
-        ["Khối lượng ước tính", "19,940 kg (D01-00001)"],
-        ["Cao độ sàn Filter Deck", "+9,500 mm T.O.S. (+43,000) · Đỉnh +13,641"],
-        ["Tải nổ thiết kế", "0.03 barg (Blast Load)"],
-        ["SIF.15 Gas Inlet Filter", "1oo3 H = 10% LEL (Inhibit) · 2oo3 HH = 15% LEL (ESN)"]
+        ["Estimated Dry Weight", "19,940 kg (D01-00001)"],
+        ["Filter Deck Elevation", "+9,500 mm T.O.S. (+43,000) · Peak +13,641"],
+        ["Design Blast Load", "0.03 barg (Offshore Deck Requirement)"],
+        ["SIF.15 Air Inlet Gas", "1oo3 H = 10% LEL (Start Inhibit) · 2oo3 HH = 15% LEL (ESN)"]
       ],
-      warnings: ["Kiểm tra kín cửa ZSC-1101-16 và đảm bảo không tích tụ khí Hydrocarbon vùng hút ngoài giàn trước khi bấm Start."]
+      warnings: ["Verify access door switch ZSC-1101-16 is closed and confirm zero hydrocarbon accumulation at the intake hood prior to initiating Start."]
     },
     {
-      id: "lm2500gg", shortName: "LM2500+G4 GG", tag: "CPPT-GT-1101", name: "Gas Generator LM2500+G4 SAC (17-Stg Axial + SAC + 2-Stg HPT)", pidSheet: "SOM6930121 · SOM896161460",
+      id: "lm2500gg", shortName: "LM2500+G4 GG", tag: "CPPT-GT-1101", name: "GE LM2500+G4 SAC Gas Generator (17-Stg Axial + SAC + 2-Stg HPT)", pidSheet: "SOM6930121 · SOM896161460",
       pos3d: [-4.6, 2.2, 0], relatedCase: "OP1", reverseKeys: ["ST-1101A-03", "TE-1101", "PS3", "HSS"],
-      role: "Cụm tạo khí lõi hàng không (Aeroderivative Gas Generator) nén không khí tỷ số ~23:1 qua 17 tầng cánh, đốt cháy liên tục trong buồng đốt vòng SAC và giãn nở qua HPT 2 tầng (~9,800–10,000 rpm CCW).",
+      role: "Aeroderivative Gas Generator core compressing combustion air at ~23:1 pressure ratio across 17 axial stages, burning fuel in a Single Annular Combustor (SAC), and expanding through a 2-stage HPT (~9,800–10,000 rpm CCW).",
       features: [
-        "17 tầng máy nén hướng trục kèm IGV + 6 tầng VSV (XV-1101-14/15) và trích khí chống stall tầng 9, 13, 16.",
-        "Buồng đốt vòng SAC Single Gas giám sát bởi 8 cặp T48 (TE-1101A..H-36) & 6 cặp T8 (TE-1101A..F-37).",
-        "Khởi động bằng Hydraulic Starter PM-1101-10 (cutoff 4,300 rpm) & quay chậm Pony Motor M-1101-01 (95–100 rpm trong 4 giờ)."
+        "17-stage axial compressor with IGVs + 6 Variable Stator Vane stages (VSV, XV-1101-14/15) and anti-stall bleed ports at stages 9, 13, and 16.",
+        "SAC single-fuel gas combustor monitored by 8 T48 thermocouples (TE-1101A..H-36) and 6 T8 exhaust thermocouples (TE-1101A..F-37).",
+        "Driven by variable-displacement Hydraulic Starter PM-1101-10 (cutout 4,300 rpm) & Slow Turning Pony Motor M-1101-01 (95–100 rpm for 4 hours post-stop)."
       ],
-      ceLinks: { cause: "LP Overspeed S1=10,160 / S3=10,643 (SIF.02), Loss of Flame (SIF.04), T48 > 927°C, Hysteresis VSV", effect: "Loss of Flame/T48 -> ES Motoring; LP S1/S3 -> ESN (S3 khóa Lock-out phải gọi BH Service)" },
+      ceLinks: { cause: "LP Overspeed S1=10,160 / S3=10,643 rpm (SIF.02), Loss of Flame (SIF.04), T48 > 927°C, VSV Hysteresis", effect: "Loss of Flame/T48 -> ES Motoring; LP Overspeed S1/S3 -> ESN (S3 triggers hard YSIL Lockout)" },
       specs: [
-        ["Công suất ISO (Gas)", "33.85 MW @ 3,600 rpm PT (GG quay CCW)"],
-        ["Khối lượng Six-Pack", "4,309 kg (GG = 2,631 kg · PT = 1,678 kg)"],
-        ["Ngưỡng T48 (TE-1101-36)", "887 °C (>120s) · 927 °C (>0.1s) · <204°C Light-off"],
-        ["Tốc độ vận hành GG", "Crank 2250 · Ignit 1600 · Starter Off 4300 · Idle 6800 · S1 10160"]
+        ["ISO Rating (Natural Gas)", "33.85 MW @ 3,600 rpm PT (GG rotation CCW fwd looking aft)"],
+        ["Six-Pack Weight", "4,309 kg (GG = 2,631 kg · PT = 1,678 kg)"],
+        ["T48 Trip Thresholds", "887 °C (>120s) · 927 °C (>0.1s) · <204°C Flame Loss"],
+        ["GG Speed Milestones", "Crank 2250 · Ignit 1600 · Starter Off 4300 · Idle 6800 · S1 10160"]
       ],
-      warnings: ["Nếu kích hoạt S3 Lockout (GG > 10,643 rpm hoặc PT > 3,960 rpm), Operator bị khóa Safety Reset trên HMI — chỉ Baker Hughes Service được phép mở khóa."]
+      warnings: ["Triggering YSIL S3 Overspeed Lockout (GG > 10,643 rpm or PT > 3,960 rpm) locks out operator HMI resets — Baker Hughes Service authorization is mandatory to unlock."]
     },
     {
-      id: "lm2500pt", shortName: "Power Turbine & WHRU", tag: "PE-PT / WHRU", name: "Tua-bin Công suất 6 Tầng (PE) & Bộ Chia Khí Thải WHRU", pidSheet: "SOM6930121 · Sh. 08 · Sec. 9",
+      id: "lm2500pt", shortName: "Power Turbine & WHRU", tag: "PE-PT / WHRU", name: "6-Stage Free Power Turbine (PE) & WHRU Exhaust Diverter", pidSheet: "SOM6930121 · Sh. 08 · Sec. 9",
       pos3d: [-2.3, 2.2, 0], relatedCase: "OP3", reverseKeys: ["ZSO-1101-15", "ZSC-1101-16", "ST-1101A-02", "PDIT-1101A-16"],
-      role: "Nhận dòng khí nóng tách rời khí động học từ GG giãn nở qua 6 tầng cánh ở 3,600 rpm kéo hộp số, đồng thời điều hướng khí xả lên ống khói Bypass hoặc cụm thu hồi nhiệt WHRU.",
+      role: "Aerodynamically decoupled 6-stage reaction Power Turbine operating at 3,600 rpm CCW to drive the gearbox, equipped with an exhaust diverter directing flue gas to Bypass Stack or Waste Heat Recovery Unit (WHRU).",
       features: [
-        "Bảo vệ quá tốc YSIL SIF.01: S1 = 3,790 rpm (1oo2), S1d = +2% > 120s, S3 = 3,960 rpm (Lock-out).",
-        "Bộ chia hướng Diverter Damper giám sát bởi ZSO/ZSC-1101-15 (Bypass) và ZSO/ZSC-1101-16 (WHRU).",
-        "Liên động SIF.05: Trước khi đánh lửa, GG > 2250 rpm & van FG-1/2 kín & Diverter ở Bypass để thổi sạch T2 = 14 phút (WHRU) / T1 = 16 phút (GT)."
+        "YSIL Overspeed SIF.01 (SIL 2): S1 = 3,790 rpm (1oo2), S1d = +2% > 120s, S3 = 3,960 rpm (Hard Lockout).",
+        "Diverter Damper monitored by end-switches ZSO/ZSC-1101-15 (Bypass Position) and ZSO/ZSC-1101-16 (WHRU Mode).",
+        "SIF.05 Exhaust Purge Interlock: Prior to ignition, GG > 2,250 rpm & FG-1/2 closed & Diverter confirmed Bypass for T2 = 14 min (WHRU) / T1 = 16 min (GT)."
       ],
-      ceLinks: { cause: "HP Overspeed ≥ 3,790 rpm (SIF.01) hoặc Diverter lỗi vị trí trước Purge (SIF.05)", effect: "SIF.01 -> ESN / Lockout; Lỗi Diverter -> Reset bộ đếm Purge T1/T2 & chặn đánh lửa" },
+      ceLinks: { cause: "HP Overspeed ≥ 3,790 rpm (SIF.01) OR Diverter off Bypass during Purge (SIF.05)", effect: "SIF.01 -> ESN / Lockout; Diverter Fault -> Aborts & Resets Purge Timers T1/T2 to zero" },
       specs: [
-        ["Số tầng & Tốc độ", "6 tầng phản lực · 3,600 rpm (MOS 70% = 2,520 rpm)"],
-        ["Khớp nối GT–Gearbox", "DBSE = 2,185 mm (Tim trục +3,050 mm)"],
-        ["Cao độ WHRU / Vent Stack", "WHRU Inlet +10,538 T.O.S. · Đỉnh Vent +14,955 T.O.S."],
-        ["Purge Timers MKVIeS", "T1 = 16 min (GT Exhaust) · T2 = 14 min (WHRU) @ >2250 rpm"]
+        ["Stages & Rated Speed", "6-Stage Free PT · 3,600 rpm (MOS 70% = 2,520 rpm)"],
+        ["GT–Gearbox Coupling", "DBSE = 2,185 mm (Shaft Centerline +3,050 mm)"],
+        ["WHRU / Stack Elevations", "WHRU Inlet +10,538 T.O.S. · Vent Stack Tip +14,955 T.O.S."],
+        ["MKVIeS Purge Timers", "T1 = 16 min (GT Exhaust) · T2 = 14 min (WHRU) @ >2250 rpm"]
       ],
-      warnings: ["CẢNH BÁO SIF.05: Trong giai đoạn Purge WHRU, bất kỳ tín hiệu mất vị trí Bypass (ZSO-1101-15 = FALSE) sẽ lập tức Reset timer 14 phút về 0!"]
+      warnings: ["SIF.05 CRITICAL: During WHRU pre-ignition purge, losing ZSO-1101-15 = TRUE (Bypass Confirmed) immediately resets the 14-minute purge timer to zero!"]
     },
     {
-      id: "gearbox", shortName: "Hộp số Lufkin", tag: "CPPT-ZZ-1101", name: "Hộp Số Tăng Tốc Lufkin NF2219E Increaser R-L", pidSheet: "YHO7000897 · Sh. 13, 16",
+      id: "gearbox", shortName: "Lufkin Gearbox", tag: "CPPT-ZZ-1101", name: "Lufkin NF2219E Speed-Increasing Gearbox (R-L Double-Helical)", pidSheet: "YHO7000897 · Sh. 13, 16",
       pos3d: [-0.2, 2.2, 0.2], relatedCase: "CH6", reverseKeys: ["VSHH-351", "VSHH-353", "ZSHH-351", "TE-1101A-05"],
-      role: "Truyền công suất 32,880 kW (SF 1.6 API 613) và tăng tốc từ 3,600 rpm (PT) lên 9,337.50 rpm (tỷ số 1 : 2.594), đồng thời dịch tâm trục ngang 558.8 mm và đảo chiều quay sang CW.",
+      role: "Transmits up to 32,880 kW (API 613 SF 1.6) stepping speed from 3,600 rpm (PT) up to 9,337.50 rpm (1 : 2.59375), introducing a 558.8 mm lateral shaft offset and reversing rotation from CCW to CW.",
       features: [
-        "Bánh răng nghiêng kép Double-Helical giảm lực dọc trục; khối lượng 8,302 kg (cẩu bảo dưỡng Max 8,500 kg).",
-        "Bảo vệ rung Bently Nevada Orbit 60 (SIF.11.1 Pinion, SIF.11.2 Wheel, SIF.14 Coupling) chuẩn voting 2oo4.",
-        "Lưu lượng dầu khoáng bôi trơn lớn: 925 L/min @ 1.70 barg & 55 °C."
+        "Double-helical precision ground gearing eliminates internal thrust generation; total mass 8,302 kg (Max lift weight 8,500 kg).",
+        "Bently Nevada Orbit 60 radial/axial protection (SIF.11.1 HS Pinion, SIF.11.2 LS Wheel, SIF.14 Coupling) using 2oo4 voting logic.",
+        "Requires 925 L/min forced Mineral Lube Oil (ISO VG 32) @ 1.70 barg & 55 °C."
       ],
-      ceLinks: { cause: "Rung 1oo4 HH + (1oo4 H/F) hoặc 2oo4 Fault (SIF.11/14) · Dịch trục LS ZSHH-351 (±0.76 mm)", effect: "PT > 300 rpm -> ES Motoring; PT < 300 rpm hoặc Axial Trip ZSHH-351 -> ESN" },
+      ceLinks: { cause: "Vibration 1oo4 HH + (1oo4 H/F) or 2oo4 Fault (SIF.11/14) · LS Axial ZSHH-351 (±0.76 mm)", effect: "PT > 300 rpm -> ES Motoring; PT < 300 rpm or Axial Trip ZSHH-351 -> ESN" },
       specs: [
-        ["Model & Khối lượng", "Lufkin NF2219E R-L CCW · 8,302 kg · Tổn thất 560 kW"],
-        ["Công suất & Tốc độ", "32,880 kW (SF 1.6) · 3,600 → 9,337.50 rpm (Lệch tâm 558.8 mm)"],
-        ["Rung HS Pinion / LS Wheel", "HS: Alarm 45 / SD 64 µm · LS: Alarm 64 / SD 102 µm p-p"],
-        ["Dịch trục & Nhiệt ổ", "LS Axial: ±0.50 / ±0.76 mm · HS Temp: 120 / 125 °C"]
+        ["Model & Weight", "Lufkin NF2219E R-L CCW · 8,302 kg · 560 kW mechanical loss"],
+        ["Power & Ratio / Offset", "32,880 kW (SF 1.6) · 3,600 → 9,337.50 rpm (ΔZ Offset 558.8 mm)"],
+        ["Pinion / Wheel Vib (p-p)", "HS Pinion: H=45 / HH=64 µm · LS Wheel: H=64 / HH=102 µm"],
+        ["Axial & Bearing Temp", "LS Axial: ±0.50 / ±0.76 mm · HS Bearing Temp: 120 / 125 °C"]
       ],
-      warnings: ["Khi rút/lắp khớp nối thủy lực DBSE 2185 / 600 mm phải dùng đúng bộ pusher/collar cho hub cao tốc & thấp tốc (lưu ý review comment T08-00001 mục 3.1)."]
+      warnings: ["During coupling hub pull/installation (DBSE 2185 / 600 mm), strictly use the dedicated hydraulic pusher/collar toolset per vendor manual comment T08-00001 Sec. 3.1."]
     },
     {
-      id: "compressor", shortName: "Máy nén 2BCL456/A", tag: "CPPT-C-1101-01/02", name: "Máy Nén Ly Tâm Barrel 2 Cấp Đấu Lưng 2BCL456/A (6 Cánh)", pidSheet: "SOS009070286 · SOK7306848 · E07",
+      id: "compressor", shortName: "2BCL456/A Compressor", tag: "CPPT-C-1101-01/02", name: "Baker Hughes 2BCL456/A Back-to-Back Barrel Centrifugal Compressor", pidSheet: "SOS009070286 · SOK7306848 · E07",
       pos3d: [2.8, 2.2, 0.4], relatedCase: "OP2", reverseKeys: ["VSHH-355", "ZSHH-352", "TSHH-364", "TSHH-365", "TE-1101A-21"],
-      role: "Thực hiện nén khí tự nhiên ngoài khơi qua 2 cấp nối tiếp chung một vỏ rèn barrel: Đoạn 1 (32.6→77.6 barg, 3 bánh công tác) và Đoạn 2 bố trí ngược chiều (62.9→141.2 barg, 3 bánh công tác) để tự cân bằng lực dọc trục.",
+      role: "Two-stage natural gas compression within a single forged barrel casing: Stage 1 (32.6→77.6 barg, 3 impellers) and Stage 2 opposed back-to-back (62.9→141.2 barg, 3 impellers) for inherent axial thrust balancing.",
       features: [
-        "Tổng khối lượng 27,350 kg; toàn bộ cụm ruột 7,237 kg trượt rút nguyên khối trên ray bảo dưỡng (dùng thanh Explode 'Rút ruột' để xem 6 cánh!).",
-        "Trang bị 2 trống cân bằng Balance Drums, phớt tổ ong Honeycomb, ổ đỡ Tilting-Pad (L/D = 0.44) & ổ chặn 2 chiều.",
-        "Bảo vệ rung 2oo4 (SIF.12/13: Alarm 50 / Trip 70 µm), dịch trục 2oo2 (±0.6 / ±0.8 mm) & nhiệt ổ chặn 110 °C."
+        "Total assembly mass 27,350 kg; the entire 7,237 kg inner diaphragm & rotor bundle slides axially onto maintenance rails (use 'Extract / Explode' slider to view all 6 impellers!).",
+        "Fitted with center & end Balance Drums, Honeycomb labyrinths, Tilting-Pad journal bearings (L/D = 0.44), and double-acting thrust bearing.",
+        "Protected by Orbit 60 2oo4 radial vibration (SIF.12/13: Alarm 50 / Trip 70 µm), 2oo2 axial (±0.6 / ±0.8 mm) & thrust pad temp 110 °C."
       ],
-      ceLinks: { cause: "Rung trục VSHH-355 (70 µm), Dịch trục ZSHH-352 (±0.8 mm), Nhiệt ổ chặn 110°C (TSHH-364/365)", effect: "Nhiệt ổ chặn -> Normal SD; Rung (PT > 300) -> ES; Dịch trục/Rung (<300) -> ESN" },
+      ceLinks: { cause: "Radial Vib VSHH-355 (70 µm), Axial Disp ZSHH-352 (±0.8 mm), Thrust Temp 110°C (TSHH-364/365)", effect: "Bearing Temp HH -> Normal SD; Vibration (PT > 300) -> ES; Axial/Vib (<300) -> ESN" },
       specs: [
-        ["Kết cấu & Chiều quay", "2BCL456/A Barrel · 2×3 Impellers Back-to-Back · CW (d->d)"],
-        ["Khối lượng Barrel / Bundle", "27,350 kg (OIM 29,000 kg) · Rotor Bundle 7,237 kg"],
-        ["Đoạn 1 (C-1101-01 Prod)", "32.60 barg / 25.1°C → 77.63 barg / 97.9°C (11,930 kW)"],
-        ["Đoạn 2 (C-1101-02 Pipe)", "62.87 barg / 46.7°C → 141.18 barg / 120.7°C (12,619 kW)"]
+        ["Configuration & Spin", "2BCL456/A Barrel · 2×3 Back-to-Back Impellers · CW (d->d)"],
+        ["Barrel / Bundle Weight", "27,350 kg (OIM 29,000 kg) · Removable Bundle 7,237 kg"],
+        ["Stage 1 (C-1101-01 Prod)", "32.60 barg / 25.1°C → 77.63 barg / 97.9°C (11,930 kW)"],
+        ["Stage 2 (C-1101-02 Pipe)", "62.87 barg / 46.7°C → 141.18 barg / 120.7°C (12,619 kW)"]
       ],
-      warnings: ["Kéo thanh trượt 'Rút ruột / Tách' ở HUD trên cùng để mô phỏng thao tác trượt Head Flange & 7,237 kg Rotor Bundle ra khỏi vỏ Barrel!"]
+      warnings: ["Drag the 'Extract / Explode' slider in the top 3D HUD to simulate unbolting the shear ring and extracting the 7,237 kg rotor bundle along the overhead davit rails!"]
     },
     {
-      id: "dgs", shortName: "Phớt DGS GASPAC-L-55", tag: "CPPT-TR-1101-01", name: "Hệ Phớt Khí Khô Tandem Flowserve GASPAC-L-55 & Seal Gas Skid", pidSheet: "D04-00006 · D08-00006 · Sh. 24-26",
+      id: "dgs", shortName: "DGS GASPAC-L-55", tag: "CPPT-TR-1101-01", name: "Flowserve GASPAC-L-55 Tandem Dry Gas Seal & Conditioning Skid", pidSheet: "D04-00006 · D08-00006 · Sh. 24-26",
       pos3d: [2.8, 1.0, 2.7], relatedCase: "CH4", reverseKeys: ["PIT-1101-19", "PIT-1101-14", "PIT-1101-15", "CM-1101-01", "H-1101"],
-      role: "Làm kín trục máy nén 2BCL456/A ở áp suất tới 141.2 barg bằng cặp phớt Tandem DGS tại 2 đầu DE & NDE, kết hợp phớt chắn dầu cấp 3 bằng khí N2 (Separation Gas 3.3 barg).",
+      role: "Seals process gas up to 141.2 barg using Flowserve Tandem DGS cartridges at DE & NDE ends, paired with a tertiary N₂ Separation Seal barrier (3.3 barg) preventing bearing MLO ingress.",
       features: [
-        "Skid xử lý khí làm kín (D08-00006, dài 4,146 mm, 4,760 kg) gồm: Lọc DBB, Scrubber tự xả, Gia nhiệt H-1101A/B/C-03 chống sương ẩm & Booster CM-1101-01.",
-        "4 bộ phát áp suất xả sơ cấp Primary Vent (PIT-1101-13/19 bên Đẩy & 14/20 bên Hút) + 6 công tắc đĩa nổ ZSO-1101.",
-        "Separation Gas N2 (PIT-1101-15/21) bắt buộc duy trì trước khi bật bơm dầu MLO."
+        "Seal Gas Panel Skid (D08-00006, 4,146 mm, 4,760 kg) includes DBB Coalescers, automatic drain scrubbers, Electric Heaters H-1101A/B/C-03, and Booster CM-1101-01.",
+        "4 Primary Vent pressure transmitters (PIT-1101-13/19 DE & 14/20 NDE) plus 6 rupture disk switches ZSO-1101.",
+        "N₂ Separation Gas (PIT-1101-15/21) must be established prior to starting MLO pumps."
       ],
-      ceLinks: { cause: "Vỡ phớt Primary Vent Press HH/LL (PIT-1101-13/19/14/20) HOẶC Mất Separation N2 LL (PIT-1101-15/21)", effect: "Mất Separation N2 -> ESN; Vỡ DGS Primary Vent (2oo2 HH/LL) -> ESN WITH VENT (Mở Flare BDVs!)" },
+      ceLinks: { cause: "Primary Vent HH/LL (PIT-1101-13/19/14/20) OR Loss of N₂ Separation Gas LL (PIT-1101-15/21)", effect: "Loss of N₂ Separation -> ESN; DGS Primary Seal Failure (2oo2 HH/LL) -> ESN WITH VENT (Opens Flare BDVs!)" },
       specs: [
-        ["Model phớt", "Flowserve GASPAC-L-55 (Tandem DGS + Tertiary Carbon Ring)"],
-        ["Separation Gas N2", "3.3 barg nominal · Mất áp LL (PIT-1101-15/21) -> ESN"],
+        ["DGS Model", "Flowserve GASPAC-L-55 (Tandem SiC + Tertiary Carbon Ring)"],
+        ["N₂ Separation Gas", "3.3 barg nominal · Loss LL (PIT-1101-15/21) -> ESN"],
         ["Primary Vent Trip", "PIT-1101-13/19 (DE) & 14/20 (NDE) 2oo2 LL/HH -> ESN + VENT"],
-        ["Skid xử lý (D08-00006)", "4,146 mm · 4,760 kg · Booster CM-1101-01 + Heater H-1101"]
+        ["Conditioning Skid", "4,146 mm · 4,760 kg · Booster CM-1101-01 + Heater H-1101"]
       ],
-      warnings: ["LƯU Ý AN TOÀN CẤP CAO: Vỡ phớt DGS Primary Vent (HH) là một trong số rất ít nguyên nhân kích hoạt ESN WITH VENT — ép mở toàn bộ BDV-1103 & BDV-1501A/B xả sạch áp máy nén ra Flare!"]
+      warnings: ["HIGH-CRITICALITY SAFETY INTERLOCK: DGS Primary Vent HH rupture is one of the few trips forcing ESN WITH VENT — opening BDV-1103 & BDV-1501A/B to blow down the compressor loop to Flare!"]
     },
     {
-      id: "enclosure", shortName: "Vỏ Bao che & Quạt", tag: "88BA-1 / 88BA-2", name: "Vỏ Bao Che Cách Âm Tuabin (5,150 mm) & Hệ Thông Gió", pidSheet: "SOM896161129 · Sh. 19-20",
+      id: "enclosure", shortName: "Acoustic Encl & Vent", tag: "88BA-1 / 88BA-2", name: "Turbine Acoustic Enclosure (5,150 mm) & Ventilation Fans", pidSheet: "SOM896161129 · Sh. 19-20",
       pos3d: [-3.9, 3.3, -1.6], relatedCase: "CH2", reverseKeys: ["PDIT-1101A-17", "GD-1101A-01", "GD-1101A-02", "88BA", "FANM-1101"],
-      role: "Cách âm xuống ≤ 85 dBA @ 1m và duy trì thông gió áp suất âm/chênh áp kín vùng nguy hiểm qua 2 quạt 100% dự phòng (88BA-1 / 88BA-2) cùng các cửa chặn lửa khí nén.",
+      role: "Attenuates acoustic noise to ≤ 85 dBA @ 1m and maintains continuous purge airflow via redundant 2×100% ventilation fans (88BA-1 / 88BA-2) with pneumatic fire dampers.",
       features: [
-        "Giám sát chênh áp vỏ PDIT-1101A/B-17 (SIF.07: mất ΔP tự chuyển sang quạt dự phòng, nếu không hồi phục trong 30s -> Trip + FG Depress).",
-        "6 đầu dò khí cháy 3oo3 bên trong khoang (GD-1101-01: 10%/25% LEL) và đường thoát gió (GD-1101-02: 5%/10% LEL).",
-        "Sau khi dừng máy, quạt thông gió tiếp tục chạy làm mát khoang (120 phút trên iHMI / 30 phút sau 0 rpm)."
+        "Monitors enclosure ΔP (PDIT-1101A/B-17, SIF.07): ΔP loss triggers auto-standby fan swap; if unrecovered within 30s -> ES Trip + FG Depress.",
+        "6 internal 3oo3 catalytic gas detectors (GD-1101-01: 10%/25% LEL) and outlet duct detectors (GD-1101-02: 5%/10% LEL).",
+        "Post-shutdown ventilation continues for thermal cooldown (120 min on iHMI / 30 min below 0 rpm)."
       ],
-      ceLinks: { cause: "Rò Gas 2oo3 LEL (SIF.06/08) HOẶC Mất thông gió PDIT-1101-17 (SIF.07) HOẶC Cháy", effect: "Rò Gas: ESN + GIỮ QUẠT chạy thổi; Mất quạt + Gas H -> ESN; Cháy -> CẮT QUẠT + ĐÓNG DAMPER!" },
+      ceLinks: { cause: "Gas Leak 2oo3 LEL (SIF.06/08) OR Encl ΔP Loss (SIF.07) OR Fire Confirmed", effect: "Gas Leak: ESN + KEEP FANS RUNNING; Fan Loss + Gas H -> ESN; Fire -> STOP FANS + CLOSE DAMPERS!" },
       specs: [
-        ["Kích thước vỏ chính", "Dài 5,150 mm · Chiều rộng skid 4,400 mm · Độ ồn ≤ 85 dBA"],
-        ["Quạt thông gió 2×100%", "HMFM-1101A-01 (88BA-1) & HMFM-1101B-01 (88BA-2)"],
-        ["SIF.06 Outlet / SIF.08 Encl", "Outlet: H=5% / HH=10% LEL · Encl: H=10% / HH=25% LEL"],
+        ["Acoustic Hood Size", "Length 5,150 mm · Skid Width 4,400 mm · Noise ≤ 85 dBA"],
+        ["Redundant Vent Fans", "HMFM-1101A-01 (88BA-1) & HMFM-1101B-01 (88BA-2) 2×100%"],
+        ["SIF.06/08 LEL Settings", "Outlet: H=5% / HH=10% LEL · Encl: H=10% / HH=25% LEL"],
         ["Purge & Cooldown Timers", "Pre-Start Purge 60s (5 Vol) · Enclosure Cooldown 120 min"]
       ],
-      warnings: ["ĐỐI LẬP ATEX vs FIRE: Khi Rò khí LEL giữ nguyên quạt 88BA chạy pha loãng khí (trừ khi khí ở cửa hút Filter House GD-1101-03 ≥ 15%); khi CHÁY phải cắt quạt & sập kín Fire Dampers!"]
+      warnings: ["ATEX vs. FIRE DIVERGENCE: On hydrocarbon gas leak, 88BA fans STAY RUNNING to dilute LEL (unless inlet air gas GD-1101-03 ≥ 15%); on FIRE, 88BA fans STOP & Fire Dampers SLAM SHUT!"]
     },
     {
-      id: "firegas", shortName: "Chữa cháy Water Mist", tag: "MIT-1442-25-101", name: "Cụm Chữa Cháy Sương Mù Nước Water Mist (NFPA 750 / FM 5560)", pidSheet: "D01-00006 · Sh. 21-22",
+      id: "firegas", shortName: "Water Mist Fire Sys", tag: "MIT-1442-25-101", name: "High-Pressure Water Mist Fire Suppression Skid (NFPA 750 / FM 5560)", pidSheet: "D01-00006 · Sh. 21-22",
       pos3d: [-6.0, 1.3, 2.7], relatedCase: "CH5", reverseKeys: ["BE-1101", "TD-1101", "PIT-1101-28", "HS-1101A-01", "XXSV-1101-08"],
-      role: "Bảo vệ dập cháy không gây sốc nhiệt khoang tua-bin bằng hệ thống phun sương áp lực cao gồm 4 chai N2 đẩy (200 barg) và 12 chai nước khử khoáng.",
+      role: "Extinguishes turbine compartment fires without thermal rotor distortion using high-pressure demineralized water mist driven by 4× 200 barg N₂ propellant cylinders & 12 H₂O cylinders.",
       features: [
-        "Kích hoạt tự động qua 2oo2 đầu dò lửa IR3 (BE-1101A/B-01) hoặc 1oo2 đầu dò gia nhiệt Heat Rise (TD-1101A/B-01..03) hoặc nút nhấn tay HS-1101A/B-01.",
-        "Trình tự bảo vệ: Cắt quạt 88BA-1/2 → Đóng sập cửa gió XV-1101-12 (20ID-1) → Đếm trễ 30s Pre-Discharge Timer → Mở van chai N2 Bank A/B XXSV-1101-08/09.",
-        "Còi đèn báo ngoài YH-1101-01/02 & XA-1101-09/10; cảm biến áp xả PIT-1101-28."
+        "Actuated automatically via 2oo2 IR3 Flame Detectors (BE-1101A/B-01), 1oo2 Heat Rise Detectors (TD-1101A/B-01..03), or manual release HS-1101A/B-01.",
+        "Protective sequence: Stop 88BA-1/2 fans → Slam XV-1101-12 (20ID-1) Fire Dampers → Run 30s Pre-Discharge Timer → Open Bank A/B N₂ solenoids XXSV-1101-08/09.",
+        "External evacuation horns/beacons YH-1101-01/02 & XA-1101-09/10; discharge manifold pressure switch PIT-1101-28."
       ],
-      ceLinks: { cause: "2oo2 BE-1101 IR3 HOẶC 1oo2 TD-1101 Heat Rise HOẶC Nút xả tay HS-1101-01", effect: "ESN + FG Depress + Cắt 88BA-1/2 + Đóng Dampers + 30s Timer + Phun sương 200 barg!" },
+      ceLinks: { cause: "2oo2 BE-1101 IR3 OR 1oo2 TD-1101 Heat Rise OR Manual Pull Station HS-1101-01", effect: "ESN + FG Depress + Cut 88BA-1/2 + Close Dampers + 30s Timer + 200 barg Water Mist Discharge!" },
       specs: [
-        ["Cụm chai D01-00006", "4× 50L N₂ (200 barg, 77 kg/chai) + 12× 50L H₂O (115 kg/chai)"],
-        ["Đầu dò Lửa & Nhiệt", "2× IR3 Flame (BE-1101A/B-01) · 6× Heat Rise (TD-1101A/B-01..03)"],
-        ["Bộ trễ xả (Pre-Discharge)", "30 giây cảnh báo sơ tán trước khi phun sương"],
-        ["Khóa bảo trì FF (43FFB-1)", "Inhibit Mode bật đèn Vàng XS-3757 · Quá 8h tự phát SD!"]
+        ["Cylinder Bank (D01-00006)", "4× 50L N₂ (200 barg, 77 kg) + 12× 50L H₂O (115 kg each)"],
+        ["Detection Voting", "2× IR3 Flame (BE-1101A/B-01) · 6× Heat Rise (TD-1101A/B-01..03)"],
+        ["Pre-Discharge Delay", "30s audible/visual warning prior to nozzle mist discharge"],
+        ["Maintenance Lock (43FFB-1)", "Inhibit illuminates Amber XS-3757 · > 8 hours auto-triggers SD!"]
       ],
-      warnings: ["LƯU Ý C&E SH.22: Nếu để khóa bảo trì 43FFB-1 hoặc đóng van xả quá 8 giờ khi máy chạy, Mark VIe tự động ra lệnh Normal Shutdown (không xong trong 20p sẽ thành ES)!"]
+      warnings: ["C&E SH.22 INTERLOCK: Leaving Water Mist in Maintenance Inhibit (43FFB-1) for over 8 hours while running triggers automatic Normal Shutdown (escalates to ES if not offline in 20m)!"]
     },
     {
-      id: "fuelSkid", shortName: "Nhiên liệu Fuel Gas", tag: "SDV-3804 / FCV-1101", name: "Cụm Nhiên Liệu Khí Off-Skid & On-Skid Double Block & Bleed", pidSheet: "SOM9913412 Sh. 04 · SIF.16",
+      id: "fuelSkid", shortName: "Fuel Gas DBB Skid", tag: "SDV-3804 / FCV-1101", name: "Off-Skid & On-Skid Fuel Gas Conditioning & Double Block & Bleed", pidSheet: "SOM9913412 Sh. 04 · SIF.16",
       pos3d: [-3.9, 1.0, 2.7], relatedCase: "OP1", reverseKeys: ["SDV-3804", "XV-3804", "SDV-1101-01", "SDV-1101-02", "XXSV-1101-05", "FCV-1101-01"],
-      role: "Cung cấp, gia nhiệt, lọc và điều tiết chính xác nhiên liệu khí cho buồng đốt SAC với cấu hình cô lập an toàn tuyệt đối (3 van ngắt nối tiếp + 2 van xả + thổi sạch N2).",
+      role: "Conditions, filters, superheats, and meters fuel gas to the SAC combustor via a certified triple-block double-bleed isolation architecture with automated N₂ line purging.",
       features: [
-        "Off-Skid: Block SDV-3804 (có bộ test PST Partial Stroke), Vent XV-3804 và thổi Nitơ SDV-3814 (30 giây sau khi Depress).",
-        "On-Skid: Cặp Block nối tiếp SDV-1101-01 (FG-1) & SDV-1101-02 (FG-2), van xả khoảng giữa XXSV-1101-05 (GVNT) và van định lượng FCV-1101-01 (VGC-1).",
-        "Bảo vệ kép: Cả MKVIe (+E) và MKVIeS (+S) cùng đóng ngắt 2 cực (+/-) trên mỗi cuộn coil GSOV-1/2, 20FB-1, 20FV-1."
+        "Off-Skid: Main Block SDV-3804 (20FB-1, with Partial Stroke Test), FO Vent XV-3804 (20FV-1), and N₂ Purge SDV-3814 (opens 30s after depressurization).",
+        "On-Skid: Series Block Valves SDV-1101-01 (FG-1) & SDV-1101-02 (FG-2), Inter-cavity FO Vent XXSV-1101-05 (GVNT), and Metering Valve FCV-1101-01.",
+        "Dual-Pole (+P/-N) redundant shutdown: both MKVIe and MKVIeS contacts must be energized to open GSOV-1/2 and 20FB/FV-1."
       ],
-      ceLinks: { cause: "Bất kỳ Trip nào (SD/ES/ESN) · SIF.16 Excessive Fuel (FZT-1101-84 lệch >2%) · Note 1 FG Depress", effect: "Đóng FG-1/2 tức thì + Mở GVNT; Note 1 đóng 20FB-1 → 5s → mở 20FV-1 → 30s N₂ Purge SDV-3814" },
+      ceLinks: { cause: "Any GT Trip (SD/ES/ESN) · SIF.16 Excessive Fuel (FZT-1101-84 > ±2%) · Note 1 FG Depress", effect: "Instant FG-1/2 Close + GVNT Open; Note 1 closes 20FB-1 → 5s → opens 20FV-1 → 30s N₂ Purge SDV-3814" },
       specs: [
-        ["Van Off-Skid (HM)", "SDV-3804 (20FB-1, có PST) · XV-3804 (20FV-1) · N₂ SDV-3814"],
-        ["Van On-Skid", "SDV-1101-01/02 (GSOV-1/2) · XXSV-1101-05 (GVNT) · FCV-1101-01"],
-        ["Áp & Nhiệt Fuel Gas", "PIT-1101-25 (0..60 barg) · TI-1101-01 (~65°C bảo đảm quá nhiệt)"],
-        ["SIF.16 LOPA Startup", "Giám sát Stroke VGC-1 ±2% & Fuel Threshold 1s trước khi có lửa"]
+        ["Off-Skid Valves (HM)", "SDV-3804 (20FB-1, w/ PST) · XV-3804 (20FV-1) · N₂ SDV-3814"],
+        ["On-Skid DBB Valves", "SDV-1101-01/02 (GSOV-1/2) · XXSV-1101-05 (GVNT) · FCV-1101-01"],
+        ["Fuel Gas Conditions", "PIT-1101-25 (34.5 barg nominal) · TI-1101-01 (~65°C superheat)"],
+        ["SIF.16 LOPA Startup", "Monitors FCV stroke ±2% & fuel pressure 1s prior to ignition"]
       ],
-      warnings: ["Test độ kín Fuel Gas Integrity & Full-Stroke Test Van FCV-1101-01 bắt buộc phải ĐẠT trước mỗi lần đánh lửa (SIF.16)."]
+      warnings: ["Fuel Gas Valve Tightness Proof Test & Full-Stroke Test of FCV-1101-01 must pass automatically before every SAC light-off (SIF.16)."]
     },
     {
-      id: "lubeConsole", shortName: "Dầu MLO & SLO", tag: "PM-1101 / T-1101-04", name: "Cụm Bồn & Bơm Dầu Khoáng (MLO) & Dầu Tổng Hợp (SLO)", pidSheet: "D01-00005 · Sh. 07, 10, 46-47",
+      id: "lubeConsole", shortName: "MLO & SLO Console", tag: "PM-1101 / T-1101-04", name: "Mineral Lube Oil (MLO) & Synthetic Lube Oil (SLO) Consoles", pidSheet: "D01-00005 · Sh. 07, 10, 46-47",
       pos3d: [0.2, 0.9, 2.7], relatedCase: "CH3", reverseKeys: ["PM-1101A-04", "PM-1101B-04", "PIT-1101-03", "PIT-1101-18", "LIT-1101-01"],
-      role: "Cấp dầu khoáng ISO VG 32 (8,000 kg Console + Run-Down Tank quán tính + Oil Vapour Separator) cho Hộp số & 2BCL456/A, tách biệt hoàn toàn với dầu tổng hợp Synthetic Oil riêng cho LM2500+G4.",
+      role: "Supplies ISO VG 32 mineral oil (8,000 kg console + Overhead Run-Down Tank + Vapor Separator) to Lufkin Gearbox & 2BCL456/A, completely segregated from the MIL-PRF-23699 Synthetic Oil loop dedicated to LM2500+G4.",
       features: [
-        "MLO Console: Bồn T-1101-04 (gia nhiệt H-1101-02 bật < 20°C), 2 bơm PM-1101A/B-04 (Main/Aux tự chuyển), lọc kép F-1101A/B-05 và Run-Down Tank khi mất điện.",
-        "SLO System: Bồn T-1101-01 (H-1101-01 làm ấm lên 32.2°C khi Idle), bơm trục P-1101-12 cấp cho 4 khoang Sump A–D & 5 chip detectors QE-1101-01..05.",
-        "Yêu cầu Separation Gas N2 phải có áp trước khi bật bơm MLO tránh dầu tràn vào phớt DGS!"
+        "MLO Console: 10m³ Reservoir T-1101-04 (Heater H-1101-02 ON < 20°C), 2×100% Screw Pumps PM-1101A/B-04, Duplex Filters F-1101A/B-05, and Gravity Run-Down Tank.",
+        "SLO System: Reservoir T-1101-01 (warmed ≥32.2°C via H-1101-01 at Idle), shaft-driven pump supplying Sump A–D & 5 magnetic chip detectors.",
+        "Separation Gas N₂ header pressure must be proven healthy before MLO pump start to protect DGS seals!"
       ],
-      ceLinks: { cause: "Áp MLO LL (PIT-1101-17/23) · Mức bồn MLO LL (LIT-1101-01) · Áp SLO LL (PIT-1101-18/24)", effect: "Mức thấp LIT-1101-01 hoặc SLO thấp PIT-1101-18/24 -> ESN; MLO Header thấp -> ES Motoring" },
+      ceLinks: { cause: "MLO Header LL (PIT-1101-17/23) · MLO Level LL (LIT-1101-01) · SLO Press LL (PIT-1101-18/24)", effect: "Tank LL LIT-1101-01 or SLO LL PIT-1101-18/24 -> ESN; MLO Header LL -> ES Motoring" },
       specs: [
-        ["MLO Console (D01-00005)", "8,000 kg · ISO VG 32 · Bơm PM-1101A/B-04 (925 L/min @ 1.7b)"],
-        ["Nhiệt độ MLO / SLO", "MLO Target 55°C · Heater <20°C · SLO Idle Warm-up ≥ 32.2°C"],
-        ["Cảm biến MLO/SLO", "MLO PIT-1101-17/23 · SLO PIT-1101-18/24 · Tank LIT-1101-01"],
-        ["Run-Down & Mist Sep", "Bồn quán tính Run-Down Tank + 2 quạt tách hơi FANM-1101B-01/02"]
+        ["MLO Console (D01-00005)", "8,000 kg · ISO VG 32 · Pumps PM-1101A/B-04 (925 L/min @ 1.7b)"],
+        ["MLO / SLO Operating Temps", "MLO Target 55°C · Heater <20°C · SLO Idle Permissive ≥ 32.2°C"],
+        ["Oil Pressure/Level Tags", "MLO PIT-1101-17/23 · SLO PIT-1101-18/24 · Tank LIT-1101-01"],
+        ["Run-Down & Mist Sep", "Gravity Coastdown Tank + Dual Mist Extractors FANM-1101B-01/02"]
       ],
-      warnings: ["Bắt buộc kiểm tra Separation Gas N2 (PIT-1101-15/21) bình thường trước khi chạy bơm dầu MLO để tránh làm hỏng phớt DGS!"]
+      warnings: ["Mandatory Permissive: Verify Separation Gas N₂ (PIT-1101-15/21 ≥ 3.3 barg) before starting MLO pumps to prevent mineral oil contamination of Dry Gas Seals!"]
     },
     {
-      id: "lubeCooler", shortName: "Air Cooler Dầu", tag: "CPPT-SK-1101-06", name: "Bộ Làm Mát Dầu Khoáng Bằng Gió Chung 2 Train (3×50% / Train)", pidSheet: "D08-00004 · Sh. 10, 46",
+      id: "lubeCooler", shortName: "MLO Air Cooler", tag: "CPPT-SK-1101-06", name: "Common Two-Train MLO Fin-Fan Air Cooler (3×50% per Train)", pidSheet: "D08-00004 · Sh. 10, 46",
       pos3d: [1.0, 1.5, -5.0], relatedCase: "CH3", reverseKeys: ["EM-1101A-01", "EM-1101B-01", "EM-1101C-01", "TIT-1101-05", "TIT-1101-06"],
-      role: "Giải nhiệt dầu khoáng MLO cho cả 2 Train (1101 & 2101) đặt trên cùng một kết cấu skid ngoài với tổng cộng 6 quạt Ø1,981 mm (mỗi Train 3 × 50%: Main / Stand-by / Aux).",
+      role: "Rejects 560 kW gearbox + bearing heat load for both Trains 1101 & 2101 on an integrated elevated structure housing 6 fans Ø1,981 mm (three 50% bays per train: Main / Standby / Aux).",
       features: [
-        "Cụm 3 quạt cho mỗi Train: EM-1101A-01 (Main), EM-1101B-01 (Stand-by), EM-1101C-01 (Auxiliary bật tự động khi nhiệt ≥ 55 °C / tắt 50 °C).",
-        "Van điều nhiệt 3 ngã TCV-1101-02 ổn định nhiệt độ đầu ra TIT-1101-05/06 ở 55 °C.",
-        "Mỗi quạt đều có công tắc bảo vệ rung VS-1101-02/03/04 tự cắt khi rung cao."
+        "Three fans per train: EM-1101A-01 (Main), EM-1101B-01 (Standby), and EM-1101C-01 (Auxiliary cuts in automatically ≥ 55 °C / cuts out 50 °C).",
+        "Three-way thermostatic mixing valve TCV-1101-02 regulates supply header TIT-1101-05/06 at 55 °C.",
+        "Each fan motor is protected against blade unbalance by local vibration switch VS-1101-02/03/04."
       ],
-      ceLinks: { cause: "Trip rung/lỗi quạt Main EM-1101A-01 -> Sụt làm mát -> Nhiệt dầu TIT-1101-05/06 ≥ HH", effect: "Tự gọi quạt Stand-by EM-1101B-01; nếu nhiệt vẫn tăng chạm 2oo2 HH -> ES Motoring!" },
+      ceLinks: { cause: "Fan Vib Trip (EM-1101A-01) -> Cooling Capacity Drops -> MLO Temp TIT-1101-05/06 ≥ HH", effect: "Auto-starts Standby EM-1101B-01; if Mean Temp hits 2oo2 HH (76°C) -> ES Motoring!" },
       specs: [
-        ["Model & Đường kính quạt", "CPPT-SK-1101-06/2101-06 Chung · 6 Quạt Ø 1,981 mm (6.5 ft)"],
-        ["Khối lượng cụm Cooler", "Empty ~33,060 kg · Operating ~34,780 kg (D08-00004)"],
-        ["Logic điều khiển 3×50%", "Aux bật ở 55°C / tắt 50°C (inhibit timer 120s / 240s)"],
-        ["Bảo vệ nhiệt đầu ra", "Mean logic TIT-1101-05/06 (LT-TA-1A/B): Hi / HH -> ES"]
+        ["Model & Fan Diameter", "Common CPPT-SK-1101-06/2101-06 · 6 Fans Ø 1,981 mm (6.5 ft)"],
+        ["Cooler Skid Weight", "Dry ~33,060 kg · Operating ~34,780 kg (D08-00004)"],
+        ["3×50% Control Logic", "Aux fan cuts in at 55°C / off at 50°C (120s/240s timers)"],
+        ["Outlet Temp Protection", "Mean Logic TIT-1101-05/06 (LT-TA-1A/B): Hi / HH -> ES"]
       ],
-      warnings: ["Chỉ khi có từ 2 quạt khỏe chạy cùng lúc (100% tải nhiệt) mới giữ được dầu MLO ổn định ở 55 °C trong ngày nắng nóng ngoài khơi."]
+      warnings: ["At least two healthy 50% fans (100% duty) must run continuously under high ambient offshore load to hold MLO header temperature near 55 °C."]
     },
     {
-      id: "processGas", shortName: "Công nghệ & Antisurge", tag: "UCV / SDV / BDV", name: "Cụm Bình Tách, Làm Mát Khí, Chống Surge & Xả Áp Flare (Stage 1 & 2)", pidSheet: "SOM9913412 Sh. 24-25 · E07-00001",
+      id: "processGas", shortName: "Process & Antisurge", tag: "UCV / SDV / BDV", name: "Process Scrubbers, Coolers, Dual Antisurge & Flare Blowdown", pidSheet: "SOM9913412 Sh. 24-25 · E07-00001",
       pos3d: [5.5, 1.8, -3.5], relatedCase: "OP2", reverseKeys: ["SDV-1103", "SDV-1507", "UCV-1101-01", "UCV-1501-01", "BDV-1103", "BDV-1501A", "UCV-1101-03"],
-      role: "Tách lỏng và làm mát khí công nghệ qua V-1102/E-1102 (Cấp 1) và V-1501/E-1501 (Cấp 2), bảo vệ máy nén khỏi hiện tượng Surge nhờ 2 vòng chống Surge nhanh + Hot Gas Bypass và cô lập/xả áp an toàn.",
+      role: "Separates condensate & cools gas across V-1102/E-1102 (Stage 1) and V-1501/E-1501 (Stage 2), preventing compressor surge via fast-acting ASVs, Hot Gas Bypass valves, ESD SDVs, and Flare Blowdown BDVs.",
       features: [
-        "Anti-Surge Cấp 1 (UY-1101-01 → UCV-1101-01 + TCV-1108 giữ 35°C) & Cấp 2 (UY-1501-01 → UCV-1501-01 + TCV-1502 giữ 60°C).",
-        "Van khẩn cấp Hot Gas Bypass UCV-1101-03 & UCV-1501-03 mở tức thì khi cắt máy hoặc Surge nhanh.",
-        "Chu trình phát hiện 3 chu kỳ Surge trong 60s tự động Trip bảo vệ cánh công tác."
+        "Dual Antisurge Loops: Stage 1 (UY-1101-01 → UCV-1101-01 + TCV-1108 @ 35°C) & Stage 2 (UY-1501-01 → UCV-1501-01 + TCV-1502 @ 60°C).",
+        "Snap-acting Hot Gas Bypass Valves UCV-1101-03 & UCV-1501-03 slam open on rapid deceleration or shutdown.",
+        "Surge Counter monitors impeller stall: 3 surge cycles detected within 60 seconds automatically trips the train (ES)."
       ],
-      ceLinks: { cause: "Đóng nghẽn đường đẩy -> Tiến sát Surge Limit Line (SLL) OR Tín hiệu ES / ESN / ESN+VENT", effect: "ASV UCV-1101/1501-01 mở tuần hoàn (Main+Rate+OpenLoop); ESN+VENT mở thêm BDV-1103 & BDV-1501A/B ra Flare!" },
+      ceLinks: { cause: "Discharge Choke -> Operating Point reaches SLL OR Trip Signals (ES / ESN / ESN+VENT)", effect: "ASV UCV-1101/1501-01 opens proportionally (PI + Rate + Open-Loop); ESN+VENT opens BDV-1103 & BDV-1501A/B to Flare!" },
       specs: [
-        ["Van Hút / Đẩy chính", "SDV-1103/1104 (1st Suc), SDV-1105/1106, SDV-1501/1502, SDV-1507/1508"],
-        ["Chống Surge & Hot Gas", "ASV: UCV-1101-01 / UCV-1501-01 · HGBV: UCV-1101-03 / UCV-1501-03"],
-        ["Xả áp Flare (Blowdown)", "BDV-1103 (Cấp 1) & BDV-1501A/B (Cấp 2) — Chỉ mở khi ESN+VENT!"],
-        ["Ngưỡng tải Opticomp", "Suction SP: 30.5–34.0 barg · Discharge SP: 139.5–142.5 barg"]
+        ["Suction/Discharge ESDVs", "SDV-1103/1104 (1st Suc), SDV-1105/1106, SDV-1501/1502, SDV-1507/1508"],
+        ["Antisurge & HGBV Valves", "ASV: UCV-1101-01 / UCV-1501-01 · HGBV: UCV-1101-03 / UCV-1501-03"],
+        ["Flare Blowdown (BDVs)", "BDV-1103 (Stg 1) & BDV-1501A/B (Stg 2) — Open ONLY on ESN+VENT!"],
+        ["Opticomp Setpoints", "Suction SP: 30.5–34.0 barg · Discharge SP: 139.5–142.5 barg"]
       ],
-      warnings: ["LƯU Ý PHÂN BIỆT DỪNG: Khi dừng thường (SD), ES hay ESN thông thường, van BDV ĐÓNG KÍN giữ áp vòng nén; CHỈ KHI 'ESN WITH VENT' (ESD PB / SIS XY-1101-01 / DGS Vent Trip) thì BDVs mới mở xả Flare!"]
+      warnings: ["SHUTDOWN DISTINCTION: Normal SD, ES, and standard ESN keep compressor loop PRESSURIZED (BDVs stay CLOSED); ONLY 'ESN WITH VENT' (ESD PB / SIS XY-1101-01 / DGS Vent HH) opens BDVs to Flare!"]
     },
     {
-      id: "waterWash", shortName: "Rửa Tuabin & Starter", tag: "CPPT-TR-1101-03", name: "Skid Rửa Tuabin Water Wash (T-1101-09) & Hydraulic Starter", pidSheet: "SOM896161446 · Sh. 17, 50-51",
+      id: "waterWash", shortName: "Water Wash & Starter", tag: "CPPT-TR-1101-03", name: "Turbine Water Wash Skid (T-1101-09) & Hydraulic Starting Unit", pidSheet: "SOM896161446 · Sh. 17, 50-51",
       pos3d: [-7.1, 1.2, -1.8], relatedCase: "OP1", reverseKeys: ["PDIT-1101-08", "PIT-1101-11", "PIT-1101-12", "SE-1101A-01"],
-      role: "Cụm Hydraulic Starter biến lưu lượng (P-1101-10, 340 barg) kéo khởi động trục GG qua khớp vấu & Motor quay chậm 100 rpm, kết hợp skid rửa cánh On-line / Off-line (400L, 40 phút @ 1200 rpm).",
+      role: "Variable-displacement Hydraulic Starter (P-1101-10, 340 barg) cranks the GG rotor via jaw clutch + 100 rpm Pony Motor for thermal bowing prevention, integrated with a 400L On-line/Off-line Compressor Wash cart.",
       features: [
-        "Kiểm tra kẹt trục Free Rotor Check: GG phải đạt ≥ 40 rpm trong 60s (duy trì >15s); nếu áp starter đạt 36 barg > 75s hoặc 40 barg -> Start Abort!",
-        "Tăng tốc Crank 2250 rpm trong 60s; tự động cắt starter ở 4,300 rpm (alarm 4,968 / ESN > 5,400 rpm).",
-        "Kiểm tra quá nhiệt khớp ly hợp TE-1101A/B-39 - TLUB > 25 °C (Alarm) / > 30 °C (ES)."
+        "Free Rotor Check: GG must reach ≥ 40 rpm within 60s (held >15s); starter pressure hitting 36 barg > 75s or 40 barg triggers Start Abort.",
+        "Cranks at 2,250 rpm for exhaust purge, then assists up to 4,300 rpm cutout (Alarm 4,968 / ESN > 5,400 rpm).",
+        "Monitors clutch temperature differential (TE-1101A/B-39 - TLUB > 25 °C Alarm / > 30 °C ES Trip)."
       ],
-      ceLinks: { cause: "Starter quá tốc > 5400 rpm (SE-1101-01) · Tắc trục 36 barg > 75s / 40 barg · Lệch nhiệt ly hợp > 30°C", effect: "Tắc trục -> Abort khởi động; >5400 rpm -> ESN; Nhiệt ly hợp >30°C -> ES" },
+      ceLinks: { cause: "Starter Overspeed > 5,400 rpm (SE-1101-01) · Locked Rotor 36b>75s/40b · Clutch ΔT > 30°C", effect: "Locked Rotor -> Start Abort; >5,400 rpm -> ESN; Clutch Overtemp >30°C -> ES" },
       specs: [
-        ["Bơm Starter P-1101-10", "Cắt áp Max 340 barg · Valve tỷ lệ XV-1101-13 (90HS-1)"],
-        ["Ngưỡng Tắc trục (17)", "Áp 36 barg > 75s hoặc 40 barg tức thì -> Cut-out"],
-        ["Slow Turning Motor", "M-1101-01 (88HR-1) quay ~95–100 rpm suốt 4 giờ sau dừng"],
-        ["Skid Water Wash", "T-1101-09 (400L) · Chu kỳ Off-Line Wash 2400s (40 phút)"]
+        ["Starter Pump P-1101-10", "340 barg Max Cutoff · Proportional Valve XV-1101-13 (90HS-1)"],
+        ["Locked Rotor Criteria", "36 barg > 75s or 40 barg instantaneous -> Cut-out & Abort"],
+        ["Slow Turning Pony Motor", "M-1101-01 (88HR-1) turns rotor ~95–100 rpm for 4h post-stop"],
+        ["Water Wash Cart", "T-1101-09 (400L) · Off-Line Soak/Wash Cycle 2400s (40 min)"]
       ],
-      warnings: ["Chỉ thực hiện Off-Line Water Wash khi T48 đã nguội dưới ngưỡng cho phép và không trong chế độ Hot Restart."]
+      warnings: ["Execute Off-Line Water Wash only after T48 cools below allowable thermal soak threshold and outside Hot Restart readiness."]
     },
     {
-      id: "ucp", shortName: "Tủ UCP & Orbit 60", tag: "MKVIe / MKVIeS", name: "Hệ Thống Điều Khiển MKVIe, An Toàn MKVIeS (SIL 2) & Orbit 60", pidSheet: "SOM896292638 · SOM896292766 · Sh. 33-40",
+      id: "ucp", shortName: "UCP MKVIe & Orbit 60", tag: "MKVIe / MKVIeS", name: "GE Mark VIe BPCS, Mark VIeS SIL 2 (YSIL) & Bently Nevada Orbit 60", pidSheet: "SOM896292638 · SOM896292766 · Sh. 33-40",
       pos3d: [6.8, 1.3, 2.7], relatedCase: "CH6", reverseKeys: ["HS-1101A-02", "XS-3741", "XS-3742", "XY-1101-01", "XY-1101-02"],
-      role: "Bộ não 3 lớp điều khiển & bảo vệ: MKVIe (Sequencer, Antisurge, Load), MKVIeS + Firmware YSIL (15 SIF SIL 2, cắt 2 cực +/- van Fuel), và Bently Nevada Orbit 60 (giám sát rung/dịch trục 2oo4/2oo2).",
+      role: "Three-layer control & safety brain: Mark VIe (Sequencer, Antisurge, Load), Mark VIeS + YSIL Firmware (15 SIL 2 SIFs cutting dual +P/-N fuel coils), and Bently Nevada Orbit 60 (2oo4/2oo2 shaft protection).",
       features: [
-        "Giao diện PNOZ-S4 SIL 3 cứng với 4 nút nhấn ESD: 2 nút 2 bên vỏ (HS-1101A/B-02) & 2 nút mặt tủ UCP (XS-3741 Depress / XS-3742 Press).",
-        "Kết nối Customer SIS: XY-1101-01 (ESD có xả Flare Vent) & XY-1101-02 (ESD không xả).",
-        "iHMI hiển thị First-Out Trip phân tách rõ 3 cột: CORE / BOP / SAFETY (MKVIeS)."
+        "Hardwired SIL 3 PNOZ-S4 safety relays wired to 4 ESD pushbuttons: 2 outside enclosure (HS-1101A/B-02) & 2 on UCP front (XS-3741 Depress / XS-3742 Press).",
+        "Platform Customer SIS interface: XY-1101-01 (ESD with Flare Blowdown) & XY-1101-02 (ESD Pressurized Hold).",
+        "iHMI Alarm Banner segregates First-Out Trips strictly into CORE / BOP / SAFETY (MKVIeS) columns."
       ],
-      ceLinks: { cause: "ESD PB (HS-1101-02 / XS-3741) · Customer SIS XY-1101-01 · 15 SIF SIL 2 · Vibration/Temp Fault", effect: "Đóng ngắt kép cả cực Dương (+P) & Âm (-N) trên GSOV-1/2 & 20FB-1/20FV-1; ghi nhận First-Out trên HMI" },
+      ceLinks: { cause: "ESD Pushbuttons (HS-1101-02 / XS-3741) · SIS XY-1101-01 · 15 SIL 2 SIFs · Vibration/Temp Trip", effect: "De-energizes both +P & -N poles on GSOV-1/2 & 20FB-1/20FV-1; latches First-Out Trip banner" },
       specs: [
-        ["Bộ điều khiển chính", "GE Mark VIe (BPCS) + Mark VIeS + YSIL/YPRO Firmware"],
-        ["Giám sát Rung & Nhiệt", "Bently Nevada Orbit 60 (VIBMON 2oo4 & TEMPMON)"],
-        ["Số SIF (SOM896292766)", "15 vòng SIF (SIL 2) + Hardwired SIL 3 ESD Pushbuttons"],
-        ["Nguồn DC DCP (Sh.32)", "110 VDC (Rectifiers A/B, Battery & Earth Fault Mon)"]
+        ["Control & Safety PLC", "GE Mark VIe (BPCS) + Mark VIeS + YSIL/YPRO Overspeed Firmware"],
+        ["Condition Monitoring", "Bently Nevada Orbit 60 (VIBMON 2oo4 & TEMPMON)"],
+        ["SIL Loops (SOM896292766)", "15 Certified SIF Loops (SIL 2) + Hardwired SIL 3 ESD Relays"],
+        ["DCP DC Distribution", "110 VDC Dual Chargers/Batteries & Earth Fault Monitor (Sh.32)"]
       ],
-      warnings: ["CƠ CHẾ ĐÓNG CẮT KÉP (SOM896292587): Mỗi cuộn solenoid FG-1/FG-2/20FB-1/20FV-1 cần cả tiếp điểm của MKVIe và MKVIeS đóng đồng thời mới mở được van."]
+      warnings: ["DUAL-POLE CUTOFF ARCHITECTURE (SOM896292587): Every fuel solenoid FG-1/FG-2/20FB-1/20FV-1 requires simultaneous closure of both MKVIe and MKVIeS output contacts to open."]
     }
   ],
 
@@ -1138,57 +1138,57 @@ const MEC002_DATA = {
     { id: "SIF.14", sil: "SIL 2", name: "Radial Vib (GT Coupling Side)", tags: "XT-1101X/Y-01 (A16MM-5X/Y)", vote: "1oo2 HH / 2oo2 F", th: "Dual Loop #1 Tracking", act: "Cut P/N GSOV-1/2 & 20FB/FV + GVNT -> ES/ESN" },
     { id: "SIF.15", sil: "SIL 2", name: "Gas Detection GT Vent Air Inlet", tags: "AE-1101A/B/C-03 (45HF-1/2/3)", vote: "2oo3 HH", th: "H=10% LEL · HH=15% LEL", act: "ESN + FG Depress + Cut Fans 88BA-1/2" },
     { id: "SIF.16", sil: "SIL 2", name: "Excessive Fuel at Start-Up LOPA", tags: "ZC/FZT-1101-84 + PT-1101-21", vote: "1s / ±2% Err", th: "GCV Stroke != Cmd or > HH(P1) before Flame", act: "Cut Ignition 95TR-1 + Cut GSOV + Re-Purge" },
-    { id: "ESD-PB", sil: "SIL 3*", name: "Emergency Pushbuttons (Non-SIF PNOZ-S4)", tags: "HS-1101A/B-02, XS-3741/3742", vote: "Series Hardwire", th: "Contact Open / Wiring Fault (XS-3762)", act: "ESN WITH VENT (Mở BDVs) + FG Depress!" }
+    { id: "ESD-PB", sil: "SIL 3*", name: "Emergency Pushbuttons (Non-SIF PNOZ-S4)", tags: "HS-1101A/B-02, XS-3741/3742", vote: "Series Hardwire", th: "Contact Open / Wiring Fault (XS-3762)", act: "ESN WITH VENT (Open Flare BDVs) + FG Depress!" }
   ],
 
   /* ---- 6 FAULT CHALLENGES FOR LAB TAB ---- */
   faultChallenges: [
     {
       id: "CH1", code: "CH-1", severity: "CRITICAL",
-      title: "Rò Gas trong vỏ / thoát gió GT (SIF.06/08: 2oo3 GD-1101-02 ≥ 10% LEL)",
-      desc: "Đầu dò khí GT Ventilation Outlet (GD-1101A/B/C-02) phát hiện khí Hydrocarbon tăng đạt 10% LEL (2oo3 HH) trong lúc máy nén đang chạy đầy tải Case 2 (9,321 rpm).",
-      mechanism: "MKVIeS lập tức cắt P/N ngắt van FG-1/2/3 → Kích hoạt ESN (No Motoring) + Fuel Gas Depressurization (20FB-1 đóng → 5s → 20FV-1 mở → 30s N₂ Purge SDV-3814) NHƯNG GIỮ QUẠT THÔNG GIÓ 88BA-1/2 CHẠY để thổi sạch khí (chú ý ngược hẳn với khi cháy!).",
-      task: "Quan sát khí xanh trong vỏ được quạt 88BA thổi giảm về < 2% LEL và tuyến FG Depress hoàn tất, sau đó bấm Ack All + Master/Safety Reset.",
+      title: "GT Enclosure / Vent Outlet Gas Leak (SIF.06/08: 2oo3 GD-1101-02 ≥ 10% LEL)",
+      desc: "GT Ventilation Outlet detectors (GD-1101A/B/C-02) detect Hydrocarbon concentration reaching 10% LEL (2oo3 HH) while running full load Case 2 (9,321 rpm).",
+      mechanism: "MKVIeS immediately cuts +P/-N to close FG-1/2/3 → Triggers ESN (No Motoring) + Fuel Gas Depressurization (20FB-1 closes → 5s → 20FV-1 opens → 30s N₂ Purge SDV-3814) WHILE KEEPING ENCLOSURE FANS 88BA-1/2 RUNNING to purge explosive gas (opposite of Fire trip!).",
+      task: "Observe green hydrocarbon mist clear down below < 2% LEL via 88BA airflow and confirm FG Depress completes, then click Ack All + Master/Safety Reset.",
       checkSolved: s => s.activeFault === 'CH1' && s.gasLel < 2.0 && !s.lockout && s.alarms.every(a => a.ack)
     },
     {
       id: "CH2", code: "CH-2", severity: "MEDIUM",
-      title: "Mất chênh áp Thông gió Vỏ (SIF.07: PDIT-1101A/B-17 LL)",
-      desc: "Quạt thông gió chính HMFM-1101A-01 (88BA-1) bị sự cố, làm chênh áp bảo vệ vỏ PDIT-1101A/B-17 rơi xuống dưới ngưỡng LL!",
-      mechanism: "Sau 30 giây trễ theo SIF.07 & Sheet 19, nếu quạt dự phòng 88BA-2 (HMFM-1101B-01) không chạy kịp hoặc áp suất không hồi phục, MKVIeS sẽ cắt ES + Fuel Gas Depressurization!",
-      task: "Khởi động ngay quạt dự phòng FANM-1101B-01 (88BA-2) trong bảng Thiết bị Phụ trợ trước khi hết 30s đếm ngược, sau đó bấm Ack All!",
+      title: "Loss of Enclosure Ventilation ΔP (SIF.07: PDIT-1101A/B-17 LL)",
+      desc: "Main Enclosure Ventilation Fan HMFM-1101A-01 (88BA-1) trips, causing differential purge pressure PDIT-1101A/B-17 to fall below LL!",
+      mechanism: "Per SIF.07 & Sheet 19, after a 30s countdown post-purge, if Standby Fan 88BA-2 (HMFM-1101B-01) fails to restore ΔP in time, MKVIeS initiates ES + Fuel Gas Depressurization!",
+      task: "Start standby fan FANM-1101B-01 (88BA-2) immediately inside the Auxiliary Equipment panel before the 30s countdown expires, then click Ack All!",
       checkSolved: s => s.activeFault === 'CH2' && s.equip.FANM1B === 'RUN' && s.enclDp > 12 && s.alarms.every(a => a.ack)
     },
     {
       id: "CH3", code: "CH-3", severity: "HIGH",
-      title: "Trip Quạt Cooler Dầu MLO EM-1101A-01 → Quá nhiệt Dầu 2BCL456/A & Gearbox",
-      desc: "Quạt chính của bộ Mineral Oil Air Cooler (EM-1101A-01) bị Trip công tắc rung VS-1101-02! Nhiệt độ dầu MLO TIT-1101-05/06 tăng vọt vượt 68°C hướng tới ngưỡng ES Shutdown (75°C).",
-      mechanism: "Hộp số Lufkin NF2219E (tổn thất 560 kW, lưu lượng 925 L/min) và ổ trục 2BCL456/A đòi hỏi 2 quạt hoạt động song song (3×50%). Nếu không có quạt dự phòng/auxiliary bù kịp, nhiệt độ Mean TIT-1101-05/06 đạt HH sẽ sinh Emergency Shutdown (ES).",
-      task: "Bật ngay quạt Stand-by EM-1101B-01 hoặc Aux EM-1101C-01 để kéo nhiệt độ MLO xuống < 60°C, sau đó Ack All!",
+      title: "MLO Cooler Fan Trip EM-1101A-01 → 2BCL456/A & Gearbox Lube Overheat",
+      desc: "Main fan of the Mineral Lube Oil Air Cooler (EM-1101A-01) trips on high vibration VS-1101-02! Header temp TIT-1101-05/06 surges above 68°C toward ES Shutdown (75°C).",
+      mechanism: "Lufkin NF2219E (560 kW loss, 925 L/min) and 2BCL456/A require two 50% fans running concurrently. Without standby/auxiliary cooling restoration, Mean temp TIT-1101-05/06 HH triggers Emergency Shutdown (ES).",
+      task: "Engage Standby Fan EM-1101B-01 or Aux Fan EM-1101C-01 to bring MLO header below < 60°C, then click Ack All!",
       checkSolved: s => s.activeFault === 'CH3' && ((s.equip.EM1B === 'RUN' ? 1:0)+(s.equip.EM1C === 'RUN' ? 1:0) >= 1) && s.mloTemp < 60 && s.alarms.every(a => a.ack)
     },
     {
       id: "CH4", code: "CH-4", severity: "CRITICAL",
-      title: "Vỡ Phớt Khí Khô DGS Primary Vent HH (PIT-1101-19 / 14 → ESN WITH VENT)",
-      desc: "Phớt sơ cấp Flowserve GASPAC-L-55 đầu Đẩy (DE) bị hư hỏng làm áp suất đường xả sơ cấp Primary Vent PIT-1101-19/13 tăng vọt qua ngưỡng HH!",
-      mechanism: "THEO C&E SHEET 24 & MASTER MATRIX SHEET 4: Đây là tình huống bắt buộc kích hoạt cấp dừng cao nhất 'ESN WITH VENT' — Cắt cứng tua-bin (No Motoring), ngắt & xả FG, đóng tất cả SDV hút/đẩy VÀ ĐỒNG LOẠT MỞ XẢ FLARE BDV-1103 & BDV-1501A/B để triệt tiêu áp suất 141 barg trong vỏ 2BCL456/A!",
-      task: "Quan sát toàn bộ khí nén xả rực đỏ lên ống Flare BDV trong 3D và áp suất 2BCL về ~0.5 barg, rồi Ack All + Reset.",
+      title: "Dry Gas Seal Failure Primary Vent HH (PIT-1101-19 / 14 → ESN WITH VENT)",
+      desc: "Flowserve GASPAC-L-55 Drive End (DE) primary seal ring fails, driving Primary Vent pressure PIT-1101-19/13 past HH!",
+      mechanism: "PER C&E SHEET 24 & MASTER MATRIX SHEET 4: This scenario forces the highest shutdown tier 'ESN WITH VENT' — Immediate No-Motoring GT trip, FG Depressurization, SDVs close AND BLOWDOWN VALVES BDV-1103 & BDV-1501A/B OPEN TO FLARE to depressurize the 141 barg loop!",
+      task: "Watch the 3D red Flare plume vent process gas from 141 barg down to ~0.5 barg, then Ack All + Reset.",
       checkSolved: s => s.activeFault === 'CH4' && s.p4 < 5 && !s.lockout && s.alarms.every(a => a.ack)
     },
     {
       id: "CH5", code: "CH-5", severity: "CRITICAL",
-      title: "Cháy Khoang GT (2oo2 BE-1101 IR3 / TD-1101 Heat) → Đóng Damper → 30s → Water Mist",
-      desc: "2 đầu dò lửa hồng ngoại BE-1101A/B-01 (45IR3-1/2) và cảm biến nhiệt TD-1101 đồng thời xác nhận đám cháy bên trong vỏ tuabin LM2500+G4!",
-      mechanism: "C&E SHEET 21: (1) Cắt tức thì Fuel Gas + ESN + FG Depressurization → (2) Dừng quạt thông gió 88BA-1/2 → (3) Cấp điện van XV-1101-12 (20ID-1) đóng sập toàn bộ Fire Dampers → (4) Đếm 30 giây Pre-Discharge cảnh báo còi YH-1101 / đèn chớp XA-1101 → (5) Mở XXSV-1101-08/09 xả 12 chai nước + 4 chai N2 200 barg dập lửa!",
-      task: "Theo dõi bộ đếm 30s Pre-Discharge & hiệu ứng phun sương Water Mist 3D dập tắt hoàn toàn đám cháy, rồi Ack All + Master/Safety Reset.",
+      title: "GT Enclosure Fire (2oo2 BE-1101 IR3 / TD-1101 Heat) → Close Dampers → 30s → Water Mist",
+      desc: "Dual IR3 Flame Detectors BE-1101A/B-01 (45IR3-1/2) and Heat Rise Detectors TD-1101 confirm fire inside the LM2500+G4 acoustic enclosure!",
+      mechanism: "C&E SHEET 21: (1) Immediate Fuel Cutoff + ESN + FG Depressurization → (2) Stop Vent Fans 88BA-1/2 → (3) Actuate XV-1101-12 (20ID-1) slamming Fire Dampers → (4) Run 30s Pre-Discharge evacuation alarm (YH-1101 / XA-1101) → (5) Open XXSV-1101-08/09 discharging 12×H₂O + 4×N₂ 200 barg Water Mist!",
+      task: "Observe the 30s Pre-Discharge countdown & 3D Water Mist extinguishing sequence, then click Ack All + Master/Safety Reset.",
       checkSolved: s => s.activeFault === 'CH5' && !s.fireDetected && !s.waterMistActive && !s.lockout && s.alarms.every(a => a.ack)
     },
     {
       id: "CH6", code: "CH-6", severity: "HIGH",
-      title: "Rung Bently Nevada Orbit 60 2oo4 (>70 µm) & Khóa Quá tốc YSIL S3 (Lockout)",
-      desc: "Cảm biến tiệm cận Orbit 60 tại máy nén 2BCL456/A (VT-1101X/Y-05,06) báo mức H (50 µm) kèm HH (70 µm) trên cùng ổ trục → kích hoạt SIF.13.",
-      mechanism: "C&E SHEET 16 & 33: Nếu tốc độ PT > 300 rpm → kích hoạt ES (có Motoring làm mát trục bằng Hydraulic Starter); nếu PT < 300 rpm → kích hoạt ESN. Lưu ý nút thử YSIL S3 Lockout (>3,960 PT / >10,643 GG) sẽ khóa cứng, nút Reset thường không mở được mà phải dùng 'BH YSIL Unlock'!",
-      task: "Kiểm tra phân loại trip CORE/BOP/SIS trên Alarm Summary, thử nhấn Reset thường và dùng BH YSIL Unlock khi cần + Ack All.",
+      title: "Bently Nevada Orbit 60 2oo4 Vib (>70 µm) & YSIL S3 Overspeed Lockout",
+      desc: "Orbit 60 proximity probes on 2BCL456/A (VT-1101X/Y-05,06) vote H (50 µm) + HH (70 µm) on the same bearing → SIF.13 Trip.",
+      mechanism: "C&E SHEET 16 & 33: If PT > 300 rpm → executes ES (Hydraulic Motoring cooldown); if PT < 300 rpm → ESN. Note that YSIL S3 Lockout (>3,960 PT / >10,643 GG) inhibits standard operator Reset — requires 'BH YSIL Unlock'!",
+      task: "Inspect CORE/BOP/SIS First-Out tags in Alarm Summary, test standard Reset vs 'BH YSIL Unlock' + Ack All.",
       checkSolved: s => s.activeFault === 'CH6' && !s.lockout && s.alarms.every(a => a.ack)
     }
   ],
@@ -1351,7 +1351,7 @@ function executeShutdown(tier, cat, tag, reason, opts = {}) {
     SIM.state = 'NORMAL_SD';
     SIM.stateTimer = 0;
     SIM.bdvOpen = false;
-    logEvent(`NORMAL SHUTDOWN (SD) [${tag}]: Giảm tải -> Cooldown -> Đóng SDVs & FG (BDV ĐÓNG giữ áp).`);
+    logEvent(`NORMAL SHUTDOWN (SD) [${tag}]: Unloading -> Cooldown -> Close SDVs & FG (BDVs CLOSED, pressurized hold).`);
     showToast(`■ NORMAL SHUTDOWN (SD): ${reason}`);
     return;
   }
@@ -1368,7 +1368,7 @@ function executeShutdown(tier, cat, tag, reason, opts = {}) {
     SIM.stateTimer = 0;
     SIM.bdvOpen = false;
     raiseAlarm(cat, tag, 'TRIP', reason + ' -> ES (Pressurized + Motoring)');
-    showToast(`⚠ EMERGENCY SHUTDOWN (ES): ${reason} — Chờ NGG < 300 rpm để Motoring.`);
+    showToast(`⚠ EMERGENCY SHUTDOWN (ES): ${reason} — Coasting to NGG < 300 rpm for Motoring.`);
   } else if (tier === 'ESN') {
     SIM.state = opts.ysil ? 'YSIL_LOCKOUT' : 'ESN';
     SIM.stateTimer = 0;
@@ -1391,8 +1391,8 @@ function executeShutdown(tier, cat, tag, reason, opts = {}) {
     SIM.stateTimer = 0;
     SIM.bdvOpen = true; // OPEN BDV-1103 & BDV-1501A/B to Flare!
     triggerFgDepressurization();
-    raiseAlarm(cat, tag, 'TRIP', reason + ' -> ESN WITH VENT (BDV MỞ XẢ FLARE!)');
-    showToast(`🔥 ESN WITH VENT: ${reason} — MỞ BDV-1103 & BDV-1501A/B XẢ FLARE!`);
+    raiseAlarm(cat, tag, 'TRIP', reason + ' -> ESN WITH VENT (BDV FLARE BLOWDOWN!)');
+    showToast(`🔥 ESN WITH VENT: ${reason} — OPENING BDV-1103 & BDV-1501A/B TO FLARE!`);
   }
 }
 
@@ -1400,17 +1400,17 @@ function triggerFgDepressurization() {
   SIM.fgDepressActive = true;
   SIM.fgDepressTimer = 0;
   SIM.sdv3804Open = false;
-  logEvent('FG DEPRESS (Note 1): Đóng SDV-3804 (20FB-1) → Đợi 5s → Mở XV-3804 (20FV-1) → 30s N₂ Purge SDV-3814.');
+  logEvent('FG DEPRESS (Note 1): Close SDV-3804 (20FB-1) → Wait 5s → Open XV-3804 (20FV-1) → 30s N₂ Purge SDV-3814.');
 }
 
 /* ===== OPERATOR COMMANDS ===== */
 function cmdStartSequence() {
   if (SIM.ysilLockout) {
-    showToast('⛔ Đang khóa YSIL S3 LOCK-OUT! Phải nhấn nút "BH YSIL Unlock" để mở khóa.');
+    showToast('⛔ YSIL S3 LOCK-OUT ACTIVE! Click "BH YSIL Unlock" to clear safety latch.');
     return;
   }
   if (SIM.lockout) {
-    showToast('⚠ Unit đang khóa ESN Lockout! Nhấn "Master/Safety Reset" trước khi Start.');
+    showToast('⚠ Unit is in ESN Lockout! Click "Master/Safety Reset" prior to Start.');
     return;
   }
   SIM.activeFault = null;
@@ -1440,8 +1440,8 @@ function cmdStartSequence() {
   SIM.sdv3804Open = false; SIM.xv3804Open = true;
   SIM.fg1Open = false; SIM.fg2Open = false; SIM.gvntOpen = true;
 
-  logEvent('START (Depressurized): Kích hoạt Booster CM-1101-01 & N₂ Separation 3.3 barg → Step 1 N₂ Purge.');
-  showToast('▶ Bắt đầu chu trình Depressurized Start-up (Step 1 → Step 4)');
+  logEvent('START (Depressurized): Enabling Seal Gas Booster CM-1101-01 & N₂ Separation 3.3 barg → Step 1 N₂ Purge.');
+  showToast('▶ Starting Depressurized Sequence (Step 1 → Step 4)');
   if (window.showCaseGuideOnly) showCaseGuideOnly('OP1');
 }
 
@@ -1464,8 +1464,8 @@ function setOperatingCase(cid) {
   if (sl) sl.value = c.rpm;
   const av = document.getElementById('anatSpeedVal');
   if (av) av.textContent = c.rpm;
-  logEvent(`Chọn điểm vận hành thiết kế ${c.name}: NCC=${c.rpm} rpm, P4=${c.p4} barg, Công suất=${c.pwrTot} kW.`);
-  showToast(`📊 Đã áp dụng ${c.name}`);
+  logEvent(`Selected Design Operating Case ${c.name}: NCC=${c.rpm} rpm, P4=${c.p4} barg, Shaft Power=${c.pwrTot} kW.`);
+  showToast(`📊 Applied ${c.name}`);
 }
 
 function setTargetSpeed(rpm) {
@@ -1487,15 +1487,15 @@ function setDischargeChoke(v) {
 
 function cmdSurgePulse() {
   if (SIM.state !== 'ON_LOAD') {
-    showToast('Đang đưa tổ máy về ON LOAD để thử phản ứng Antisurge...');
+    showToast('Transitioning unit to ON LOAD for Antisurge response test...');
     forceOnLoadState();
   }
   const next = SIM.dischargeChoke > 40 ? 0 : 72;
   setDischargeChoke(next);
   logEvent(next > 0
-    ? '⚡ THỬ SURGE: Khép van đẩy tạo tắc dòng → Điểm làm việc tiến sát SLL → ASV UCV-1101/1501-01 tự động bật mở tuần hoàn!'
-    : 'Khôi phục đường đẩy bình thường → ASV UCV-1101/1501-01 khép dần về 0%.');
-  showToast(next > 0 ? '🌊 Điểm làm việc tiến sát SLL! Xem ASV mở & đồ thị Antisurge!' : '✅ Đã mở thông đường đẩy.');
+    ? '⚡ SURGE TEST: Throttling discharge line → Operating point approaches SLL → ASVs UCV-1101/1501-01 modulate open to recycle!'
+    : 'Discharge header unthrottled → ASVs UCV-1101/1501-01 ramp closed back to 0%.');
+  showToast(next > 0 ? '🌊 Operating point approaching SLL! Watch ASVs open & live surge maps!' : '✅ Normal discharge flow restored.');
   if (next > 0 && window.showCaseGuideOnly) showCaseGuideOnly('OP2');
 }
 
@@ -1503,40 +1503,40 @@ function cmdToggleWhru() {
   SIM.whruMode = SIM.whruMode === 'BYPASS' ? 'WHRU' : 'BYPASS';
   const b = document.getElementById('btnWhruMode');
   if (b) b.textContent = `WHRU: ${SIM.whruMode}`;
-  logEvent(`Chuyển van chia khí thải Diverter Damper (ZSO-1101-15/16) sang ${SIM.whruMode}.`);
+  logEvent(`Switched Exhaust Diverter Damper (ZSO-1101-15/16) to ${SIM.whruMode} mode.`);
   if (window.showCaseGuideOnly && SIM.activeCase !== 'OP3') showCaseGuideOnly('OP3');
 }
 
 function toggleAuxEquip(key) {
   if (SIM.equip[key] === 'TRIP') {
-    showToast(`${key} đang bị TRIP! Hãy khởi động bơm/quạt dự phòng hoặc Reset sau khi hết lỗi.`);
+    showToast(`${key} is TRIPPED! Start standby equipment or Reset system after fault clears.`);
     return;
   }
   const next = SIM.equip[key] === 'RUN' ? 'STOP' : 'RUN';
   if ((key === 'FANM1A' || key === 'FANM1B') && next === 'STOP' && SIM.gasLel >= 5) {
-    showToast('⛔ ATEX RULE: Cấm tắt quạt thông gió vỏ khi đang rò khí Hydrocarbon (LEL ≥ 5%)!');
+    showToast('⛔ ATEX INTERLOCK: Cannot stop enclosure ventilation fan during Hydrocarbon leak (LEL ≥ 5%)!');
     return;
   }
   SIM.equip[key] = next;
-  logEvent(`Thao tác MKVIe: ${key} → ${next}`);
+  logEvent(`MKVIe Aux Command: ${key} → ${next}`);
 }
 
 function ackAllAlarms() {
   SIM.alarms.forEach(a => a.ack = true);
-  logEvent('Operator đã Ack All tất cả cảnh báo CORE / BOP / SIS.');
+  logEvent('Operator acknowledged all CORE / BOP / SIS alarms.');
 }
 
 function resetSystem(ysilBypass = false) {
   if (SIM.fireDetected || SIM.mistCountdown > 0 || SIM.waterMistActive) {
-    showToast('Chưa thể Reset: Đám cháy / Chu trình phun sương Water Mist chưa hoàn tất!');
+    showToast('Reset Inhibited: Fire / Water Mist suppression sequence still active!');
     return;
   }
   if (SIM.gasLel >= 5) {
-    showToast('Chưa thể Reset: Nồng độ LEL trong vỏ vẫn ≥ 5%!');
+    showToast('Reset Inhibited: Enclosure Hydrocarbon LEL concentration remains ≥ 5%!');
     return;
   }
   if (SIM.ysilLockout && !ysilBypass) {
-    showToast('⛔ Đang khóa YSIL S3 LOCK-OUT! Phải bấm nút "BH YSIL Unlock" để mở khóa.');
+    showToast('⛔ YSIL S3 LOCK-OUT ACTIVE! Click "BH YSIL Unlock" to clear safety latch.');
     return;
   }
   SIM.lockout = false;
@@ -1554,8 +1554,8 @@ function resetSystem(ysilBypass = false) {
   }
   if (SIM.equip.FANM1A === 'STOP' && SIM.equip.FANM1B === 'STOP') SIM.equip.FANM1A = 'RUN';
   SIM.alarms.forEach(a => { a.active = false; a.ack = true; });
-  logEvent(ysilBypass ? '✅ Đã thực hiện BH YSIL Service Unlock + Safety Reset.' : '✅ Master / Safety Reset hoàn tất.');
-  showToast('✅ Hệ thống đã Reset — Sẵn sàng khởi động.');
+  logEvent(ysilBypass ? '✅ Executed BH YSIL Service Unlock + Safety Reset.' : '✅ Master / Safety Reset complete.');
+  showToast('✅ System Reset — Ready for Startup.');
 }
 
 function forceOnLoadState() {
@@ -1588,26 +1588,26 @@ function triggerFault(id) {
     SIM.equip.FANM1A = 'TRIP';
     SIM.equip.FANM1B = 'STOP';
     SIM.ventDelayTimer = 30.0;
-    raiseAlarm('SIS', 'PDIT-1101-17', 'LL', 'Mất chênh áp vỏ GT (88BA-1 TRIP) — Bật 88BA-2 trong 30s!');
+    raiseAlarm('SIS', 'PDIT-1101-17', 'LL', 'GT Encl ΔP Loss (88BA-1 TRIP) — Start 88BA-2 within 30s!');
     setDcsTab('lube');
     setCameraPreset('gt');
   } else if (id === 'CH3') {
     SIM.equip.EM1A = 'TRIP';
     SIM.equip.EM1C = 'STOP';
-    raiseAlarm('BOP', 'VS-1101-02', 'TRIP', 'Quạt MLO Cooler EM-1101A-01 Trip rung cao! Nhiệt độ MLO đang tăng!');
+    raiseAlarm('BOP', 'VS-1101-02', 'TRIP', 'MLO Cooler Fan EM-1101A-01 High Vib Trip! Lube Temp Rising!');
     setDcsTab('lube');
     setCameraPreset('cooler');
   } else if (id === 'CH4') {
     SIM.dgsVentPress = 6.8;
-    raiseAlarm('BOP', 'PIT-1101-19', 'HH', 'DGS DE Primary Vent Pressure HH (Vỡ phớt Flowserve GASPAC-L-55)!');
+    raiseAlarm('BOP', 'PIT-1101-19', 'HH', 'DGS DE Primary Vent Pressure HH (Flowserve GASPAC-L-55 Rupture)!');
     executeShutdown('ESN_VENT', 'BOP', 'PIT-1101-19', 'DGS Primary Vent Pressure HH');
     setDcsTab('dgs');
     setCameraPreset('dgs');
   } else if (id === 'CH5') {
     SIM.fireDetected = true;
     SIM.enclTemp = 195;
-    raiseAlarm('SIS', 'BE-1101A/B-01', 'HH', '2oo2 IR3 Fire Confirmed trong khoang GT!');
-    raiseAlarm('SIS', 'TD-1101', 'HH', 'Heat Rise Fire + Đóng Dampers XV-1101-12 + 30s Water Mist Timer!');
+    raiseAlarm('SIS', 'BE-1101A/B-01', 'HH', '2oo2 IR3 Fire Confirmed in GT Acoustic Enclosure!');
+    raiseAlarm('SIS', 'TD-1101', 'HH', 'Heat Rise Fire + Close Dampers XV-1101-12 + 30s Water Mist Timer!');
     executeShutdown('ESN', 'SIS', 'BE-1101', 'FIRE TRIP — Water Mist Pre-Discharge 30s', { fire: true, fgDepress: true });
     setDcsTab('lube');
     setCameraPreset('gt');
@@ -1635,7 +1635,7 @@ function stepSimulation(rawDt) {
   if (SIM.state === 'STEP1_N2_PURGE') {
     if (SIM.stateTimer > 3.5) {
       SIM.state = 'STEP2_PROC_PURGE'; SIM.stateTimer = 0;
-      logEvent('Step 2: Thổi sạch vòng nén bằng Process Gas (~2–6 bar) → Mở tuần hoàn ASVs (UCV-1101/1501-01 = 100%).');
+      logEvent('Step 2: Process Gas Purge of compressor loop (~2–6 bar) → ASVs (UCV-1101/1501-01) full open 100%.');
     }
   } else if (SIM.state === 'STEP2_PROC_PURGE') {
     SIM.p1 += (32.6 - SIM.p1) * dt * 0.55;
@@ -1643,14 +1643,14 @@ function stepSimulation(rawDt) {
     if (SIM.stateTimer > 4.5) {
       SIM.state = 'ROTOR_CHECK'; SIM.stateTimer = 0;
       SIM.equip.HSS = 'RUN';
-      logEvent('HSS P-1101-10 đóng 90HS-1: Kiểm tra Free Rotor (GG ≥ 40 rpm trong 60s, P < 36 barg).');
+      logEvent('HSS P-1101-10 engages 90HS-1: Free Rotor Breakaway Check (GG ≥ 40 rpm in 60s, P < 36 barg).');
     }
   } else if (SIM.state === 'ROTOR_CHECK') {
     SIM.ngg += (120 - SIM.ngg) * dt * 1.4;
     SIM.starterRpm = SIM.ngg; SIM.starterPress = 22.0;
     if (SIM.stateTimer > 2.8) {
       SIM.state = 'CRANK_PURGE'; SIM.stateTimer = 0;
-      logEvent('Free Rotor PASS (>40 rpm) → Rampa Crank 2,250 rpm: Bắt đầu SIF.05 Purge Timer (T1 16m / T2 14m).');
+      logEvent('Free Rotor PASS (>40 rpm) → Crank to 2,250 rpm: Running SIF.05 Purge Timer (T1 16m / T2 14m).');
     }
   } else if (SIM.state === 'CRANK_PURGE') {
     SIM.ngg += (2250 - SIM.ngg) * dt * 1.3;
@@ -1659,37 +1659,37 @@ function stepSimulation(rawDt) {
       SIM.state = 'IGNITION'; SIM.stateTimer = 0;
       SIM.sdv3804Open = true; SIM.xv3804Open = false;
       SIM.fg1Open = true; SIM.fg2Open = true; SIM.gvntOpen = false;
-      logEvent('Purge xong → Hạ 1,650 rpm Đánh lửa SAC (SIF.16 Fuel Check ±2% OK) → Light-off T48 ≥ 204°C!');
+      logEvent('Purge Complete → Drop to 1,650 rpm SAC Ignition (SIF.16 Fuel Check ±2% OK) → Light-off T48 ≥ 204°C!');
     }
   } else if (SIM.state === 'IGNITION') {
     SIM.ngg += dt * 1050;
     SIM.t48 += (540 - SIM.t48) * dt * 0.9;
     if (SIM.ngg >= 4300 && SIM.equip.HSS === 'RUN') {
       SIM.equip.HSS = 'STOP'; SIM.starterRpm = 0; SIM.starterPress = 0;
-      logEvent('GG đạt 4,300 rpm (KHSOFFSPD) → Cắt khớp ly hợp Hydraulic Starter P-1101-10.');
+      logEvent('GG reached 4,300 rpm (KHSOFFSPD) → Disengaged Hydraulic Starter P-1101-10.');
     }
     if (SIM.ngg >= 6800) {
       SIM.state = 'IDLE_WARMUP'; SIM.stateTimer = 0;
-      logEvent('GG đạt IDLE 6,800 rpm → Làm ấm Synthetic Oil (≥32.2°C).');
+      logEvent('GG at IDLE 6,800 rpm → Synthetic Lube Oil (SLO) Thermal Warm-up (≥32.2°C).');
     }
   } else if (SIM.state === 'IDLE_WARMUP') {
     SIM.ngg += (6800 - SIM.ngg) * dt * 2;
     SIM.ncc += (3200 - SIM.ncc) * dt * 0.7;
     if (SIM.stateTimer > 3.2) {
       SIM.state = 'ACCEL_MOS'; SIM.stateTimer = 0;
-      logEvent('Step 3: Tăng tốc qua Minimum Operating Speed (MOS 70%: PT=2520 / 2BCL=6535 rpm).');
+      logEvent('Step 3: Accelerating past Minimum Operating Speed (MOS 70%: PT=2520 / 2BCL=6535 rpm).');
     }
   } else if (SIM.state === 'ACCEL_MOS') {
     SIM.ncc = Math.min(SIM.targetNcc, SIM.ncc + dt * 1250);
     if (SIM.ncc >= 6535 && !SIM.sdvProcOpen) {
       SIM.sdvProcOpen = true;
       SIM.equip.BOOSTER = 'STOP';
-      logEvent('Đạt MOS 6,535 rpm → Mở SDV-1103..1508 (Loading) → Cắt Seal Gas Booster (chuyển sang tự trích từ đẩy).');
+      logEvent('MOS 6,535 rpm Reached → Opening SDV-1103..1508 (Process Loading) → Stopping Seal Gas Booster.');
     }
     if (Math.abs(SIM.ncc - SIM.targetNcc) < 80) {
       SIM.state = 'ON_LOAD'; SIM.stateTimer = 0;
-      logEvent(`Step 4 Hoàn tất: Tổ máy mang tải ổn định tại ${SIM.targetNcc} rpm (${c.p4} barg).`);
-      showToast(`✅ Tổ máy đạt ON-LOAD (${SIM.targetNcc} rpm · ${c.p4} barg)`);
+      logEvent(`Step 4 Complete: Compressor Train steady ON-LOAD at ${SIM.targetNcc} rpm (${c.p4} barg).`);
+      showToast(`✅ Compressor Train ON-LOAD (${SIM.targetNcc} rpm · ${c.p4} barg)`);
     }
   } else if (SIM.state === 'ON_LOAD') {
     SIM.ncc += (SIM.targetNcc - SIM.ncc) * Math.min(1, dt * 1.8);
@@ -1809,7 +1809,7 @@ function stepSimulation(rawDt) {
   const eqMlo = 26 + Math.max(12, heatLoad - coolerFans * 11.5);
   SIM.mloTemp += (eqMlo - SIM.mloTemp) * Math.min(1, dt * 0.16);
   SIM.mloPress = (SIM.equip.PM1A === 'RUN' || SIM.equip.PM1B === 'RUN') ? 1.70 : 0.05;
-  if (SIM.mloTemp >= 70) raiseAlarm('BOP', 'TIT-1101-05', 'H', `Nhiệt độ dầu MLO cao (${SIM.mloTemp.toFixed(1)}°C)`);
+  if (SIM.mloTemp >= 70) raiseAlarm('BOP', 'TIT-1101-05', 'H', `MLO Header Temperature High (${SIM.mloTemp.toFixed(1)}°C)`);
   if (SIM.mloTemp >= 76 && SIM.state === 'ON_LOAD') {
     executeShutdown('ES', 'BOP', 'TIT-1101-05/06', `MLO Cooler Temp HH (${SIM.mloTemp.toFixed(1)}°C)`);
   }
@@ -1822,7 +1822,7 @@ function stepSimulation(rawDt) {
     if (SIM.enclDp < 5.0) {
       SIM.ventDelayTimer -= dt;
       if (SIM.ventDelayTimer <= 0) {
-        executeShutdown('ES', 'SIS', 'PDIT-1101A/B-17', 'SIF.07 Hết 30s mất thông gió vỏ', { fgDepress: true });
+        executeShutdown('ES', 'SIS', 'PDIT-1101A/B-17', 'SIF.07 30s Encl Ventilation ΔP Loss Timeout', { fgDepress: true });
       }
     }
   }
@@ -1832,7 +1832,7 @@ function stepSimulation(rawDt) {
     if (SIM.state === 'ON_LOAD') {
       SIM.gasLel = Math.min(28, SIM.gasLel + dt * 1.5);
       if (SIM.gasLel >= 10.0) {
-        executeShutdown('ESN', 'SIS', 'GD-1101A/B/C-02', 'SIF.08 2oo3 Gas ≥ 10% LEL (GIỮ QUẠT 88BA!)', { fgDepress: true, keepVent: true });
+        executeShutdown('ESN', 'SIS', 'GD-1101A/B/C-02', 'SIF.08 2oo3 Gas ≥ 10% LEL (KEEP 88BA FANS ON!)', { fgDepress: true, keepVent: true });
       }
     } else if (ventFans > 0) {
       SIM.gasLel = Math.max(0, SIM.gasLel - dt * 2.5);
@@ -1846,8 +1846,8 @@ function stepSimulation(rawDt) {
       SIM.mistCountdown = 0;
       SIM.waterMistActive = true;
       SIM.mistDischargeTimer = 10.0;
-      logEvent('💧 HẾT 30s TIMER → Mở van XXSV-1101-08/09 xả 12×H₂O + 4×N₂ Water Mist 200 barg!');
-      showToast('💧 XẢ SƯƠNG WATER MIST 200 BARG DẬP CHÁY!');
+      logEvent('💧 30s PRE-DISCHARGE ELAPSED → Opening XXSV-1101-08/09: 12×H₂O + 4×N₂ 200 barg Water Mist Discharge!');
+      showToast('💧 WATER MIST 200 BARG DISCHARGING!');
     }
   }
   if (SIM.waterMistActive) {
@@ -1855,7 +1855,7 @@ function stepSimulation(rawDt) {
     if (SIM.mistDischargeTimer < 4.5 && SIM.fireDetected) {
       SIM.fireDetected = false;
       SIM.enclTemp = 52;
-      logEvent('✅ Water Mist đã dập tắt hoàn toàn đám cháy trong vỏ GT!');
+      logEvent('✅ Water Mist suppression fully extinguished GT enclosure fire!');
     }
     if (SIM.mistDischargeTimer <= 0) SIM.waterMistActive = false;
   }
@@ -1865,8 +1865,8 @@ function stepSimulation(rawDt) {
     const ch = MEC002_DATA.faultChallenges.find(f => f.id === SIM.activeFault);
     if (ch && ch.checkSolved(SIM)) {
       SIM.solvedFaults[SIM.activeFault] = true;
-      logEvent(`🎉 HOÀN THÀNH KỊCH BẢN ${ch.code}: ${ch.title}`);
-      showToast(`🎉 CHÚC MỪNG! Đã xử lý đúng kịch bản ${ch.code}!`);
+      logEvent(`🎉 SCENARIO RESOLVED ${ch.code}: ${ch.title}`);
+      showToast(`🎉 SCENARIO ${ch.code} SOLVED SUCCESSFULLY!`);
       if (window.renderFaultLab) renderFaultLab();
     }
   }
@@ -2798,8 +2798,8 @@ function setLayoutMode(mode) {
 function selectUnit(uid) {
   SIM.unitId = uid;
   const u = MEC002_DATA.units[uid];
-  logEvent(`Chuyển giám sát sang Train ${u.pkg} (Job ${u.job} · ${u.side}).`);
-  showToast(`Đang xem Train ${u.pkg} (${u.side})`);
+  logEvent(`Switched monitoring view to Train ${u.pkg} (Job ${u.job} · ${u.side}).`);
+  showToast(`Viewing Train ${u.pkg} (${u.side})`);
   // Mirror turbine enclosure maintenance door & dismantling cues for PK-2101 (Left) vs PK-1101 (Right)
   if (VIEW3D.ready && VIEW3D.anim.dismantleSideObjs) {
     VIEW3D.anim.dismantleSideObjs.forEach(g => {
@@ -2915,8 +2915,8 @@ function renderActivePidSvg() {
 
       <!-- UCP SIL 2/3 Lockout Card -->
       <rect x="425" y="228" width="380" height="65" class="svg-box" onclick="selectComponent('ucp')"/>
-      <text x="434" y="245" class="svg-lbl">BẢO VỆ MKVIeS (SIL 2) &amp; YSIL / YPRO HARDWARE</text>
-      <text x="434" y="261" class="svg-val" fill="${SIM.lockout?'#ef4444':'#22c55e'}">TRẠNG THÁI: ${SIM.state} ${SIM.ysilLockout?'[YSIL S3 LOCKOUT]':''}</text>
+      <text x="434" y="245" class="svg-lbl">MKVIeS (SIL 2) &amp; YSIL / YPRO SAFETY INTERLOCK</text>
+      <text x="434" y="261" class="svg-val" fill="${SIM.lockout?'#ef4444':'#22c55e'}">STATE: ${SIM.state} ${SIM.ysilLockout?'[YSIL S3 LOCKOUT]':''}</text>
       <text x="434" y="278" class="svg-sub">Trip Priority: [1] ESN+VENT -> [2] ESN -> [3] ES Motoring -> [4] Normal SD</text>
     </svg>`;
   } else if (SIM.dcsTab === 'process') {
@@ -2977,7 +2977,7 @@ function renderActivePidSvg() {
 
       <rect x="705" y="26" width="95" height="44" class="svg-box"/>
       <text x="713" y="44" class="svg-lbl" fill="#ef4444">🔥 FLARE HDR</text>
-      <text x="713" y="60" class="svg-val">${SIM.bdvOpen?'XẢ RỰC LỬA!':'STANDBY'}</text>
+      <text x="713" y="60" class="svg-val">${SIM.bdvOpen?'FLARING!':'STANDBY'}</text>
     </svg>`;
   } else if (SIM.dcsTab === 'dgs') {
     wrap.innerHTML = `<svg viewBox="0 0 820 335">
@@ -2993,7 +2993,7 @@ function renderActivePidSvg() {
       <rect x="30" y="210" width="145" height="65" class="svg-box" onclick="selectComponent('dgs')"/>
       <text x="38" y="230" class="svg-lbl">N₂ SEPARATION SEAL</text>
       <text x="38" y="248" class="svg-val">PIT-1101-15/21: ${SIM.sepN2Press.toFixed(2)} barg</text>
-      <text x="38" y="264" class="svg-sub">Chống dầu MLO tràn vào DGS</text>
+      <text x="38" y="264" class="svg-sub">Prevents MLO oil ingress</text>
 
       <rect x="215" y="75" width="275" height="190" class="svg-box" onclick="selectComponent('compressor')"/>
       <text x="225" y="96" class="svg-lbl">2BCL456/A DE &amp; NDE SEAL CARTRIDGES</text>
@@ -3008,15 +3008,15 @@ function renderActivePidSvg() {
       <text x="370" y="166" class="svg-sub">PIT-1101-14 / 20 (HH)</text>
 
       <text x="230" y="220" class="svg-sub">Seal Gas Supply Balance: ${SIM.sealGasBalP.toFixed(1)} barg (PIT-1101-02)</text>
-      <text x="230" y="238" class="svg-sub">Nhiệt độ DGS: ${SIM.sealGasTemp.toFixed(1)}°C (TIT-1101-11..15 · SD 200°C)</text>
+      <text x="230" y="238" class="svg-sub">DGS Temp: ${SIM.sealGasTemp.toFixed(1)}°C (TIT-1101-11..15 · SD 200°C)</text>
 
       <rect x="525" y="95" width="265" height="145" class="svg-box" onclick="selectComponent('dgs')"/>
-      <text x="535" y="116" class="svg-lbl" fill="#ef4444">SỰ CỐ VỠ PHỚT → ESN WITH VENT</text>
+      <text x="535" y="116" class="svg-lbl" fill="#ef4444">DGS SEAL RUPTURE → ESN WITH VENT</text>
       <text x="535" y="138" class="svg-val" fill="${SIM.dgsVentPress>4.5?'#ef4444':'#86efac'}">STATUS: ${SIM.dgsVentPress>4.5?'RUPTURE HH TRIP!':'TANDEM INTEGRITY OK'}</text>
       <text x="535" y="158" class="svg-sub">C&amp;E Sheet 24: PIT-1101-19 / 14 HH</text>
-      <text x="535" y="176" class="svg-sub">-> Cắt Fuel GT (ESN No Motoring)</text>
-      <text x="535" y="194" class="svg-sub">-> Đóng SDV Hút/Đẩy &amp; MỞ BDV FLARE!</text>
-      <text x="535" y="212" class="svg-sub">Bảo vệ phớt thứ cấp không quá áp nổ.</text>
+      <text x="535" y="176" class="svg-sub">-> Cut GT Fuel (ESN No Motoring)</text>
+      <text x="535" y="194" class="svg-sub">-> Close Suct/Disch SDVs &amp; OPEN BDV FLARE!</text>
+      <text x="535" y="212" class="svg-sub">Protects secondary seal from overpressure.</text>
     </svg>`;
   } else {
     wrap.innerHTML = `<svg viewBox="0 0 820 335">
@@ -3035,7 +3035,7 @@ function renderActivePidSvg() {
       <text x="210" y="95" class="svg-val" fill="${SIM.equip.EM1A==='RUN'?'#22c55e':'#ef4444'}">Fan EM-A: ${SIM.equip.EM1A}</text>
       <text x="210" y="112" class="svg-val" fill="${SIM.equip.EM1B==='RUN'?'#22c55e':'#94a3b8'}">Fan EM-B: ${SIM.equip.EM1B}</text>
       <text x="210" y="129" class="svg-val" fill="${SIM.equip.EM1C==='RUN'?'#22c55e':'#94a3b8'}">Fan EM-C (Aux): ${SIM.equip.EM1C}</text>
-      <text x="210" y="145" class="svg-sub">Cần ≥ 2 quạt khi mang tải! (ES HH 76°C)</text>
+      <text x="210" y="145" class="svg-sub">Requires ≥ 2 fans @ load! (ES HH 76°C)</text>
 
       <rect x="25" y="205" width="380" height="98" class="svg-box" onclick="selectComponent('enclosure')"/>
       <text x="35" y="225" class="svg-lbl">ENCLOSURE VENTILATION (88BA-1/2 · SIF.06/07/08)</text>
@@ -3048,10 +3048,10 @@ function renderActivePidSvg() {
       <text x="452" y="102" class="svg-val" fill="${SIM.fireDetected?'#ef4444':'#22c55e'}">IR3 BE-1101 &amp; Heat TD-1101: ${SIM.fireDetected?'🔥 FIRE CONFIRMED!':'NORMAL'}</text>
       <text x="452" y="126" class="svg-val" fill="${SIM.mistCountdown>0?'#f59e0b':'#cbd5e1'}">Pre-Discharge 30s Timer: ${SIM.mistCountdown>0?SIM.mistCountdown.toFixed(1)+' s':'IDLE'}</text>
       <text x="452" y="150" class="svg-val" fill="${SIM.waterMistActive?'#38bdf8':'#cbd5e1'}">Water Mist Manifold XXSV-08/09: ${SIM.waterMistActive?'💧 DISCHARGING!':'ARMED'}</text>
-      <text x="452" y="178" class="svg-sub">NGUYÊN LÝ RẼ NHÁNH C&amp;E (SHEET 21 vs SHEET 19):</text>
-      <text x="452" y="198" class="svg-sub">• Rò GAS (≥10% LEL): ESN + GIỮ QUẠT 88BA CHẠY thổi khí!</text>
-      <text x="452" y="218" class="svg-sub">• CHÁY (IR3/Heat): ESN + CẮT QUẠT 88BA + ĐÓNG DAMPER XV-12</text>
-      <text x="452" y="236" class="svg-sub">  + Đếm 30s còi đèn -> Xả sương Water Mist 200 barg dập lửa!</text>
+      <text x="452" y="178" class="svg-sub">C&amp;E DIVERGENT LOGIC (SHEET 21 vs SHEET 19):</text>
+      <text x="452" y="198" class="svg-sub">• GAS LEAK (≥10% LEL): ESN + KEEP 88BA FANS RUNNING to dilute gas!</text>
+      <text x="452" y="218" class="svg-sub">• FIRE (IR3/Heat): ESN + STOP 88BA FANS + CLOSE DAMPERS XV-12</text>
+      <text x="452" y="236" class="svg-sub">  + Run 30s siren/beacon -> 200 barg Water Mist Extinguishment!</text>
       <text x="452" y="264" class="svg-val">SLO Temp: ${SIM.sloTemp.toFixed(1)}°C (Run ≥ 32.2°C) · Press: ${SIM.sloPress.toFixed(1)}b</text>
     </svg>`;
   }
@@ -3091,13 +3091,13 @@ function renderCeMatrix() {
   if (!wrap) return;
 
   let html = `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
-    <strong style="color:var(--cyan);font-size:11.5px;">⚡ MA TRẬN CAUSE &amp; EFFECT TỔNG THỂ (SOM896292590 Rev 6 · ${MEC002_DATA.ceFullDb.length} Rules + 15 SIF SIL 2)</strong>
-    <span style="font-size:10px;color:var(--muted);">Bấm bất kỳ hàng nào để chạy thử hoặc tra ngược 3D</span>
+    <strong style="color:var(--cyan);font-size:11.5px;">⚡ MASTER CAUSE &amp; EFFECT MATRIX (SOM896292590 Rev 6 · ${MEC002_DATA.ceFullDb.length} Rules + 15 SIF SIL 2)</strong>
+    <span style="font-size:10px;color:var(--muted);">Click any scenario row to simulate or reverse-trace in 3D</span>
   </div>`;
 
   // Section A: 12 Key Scenarios
   html += `<table class="ce-table"><thead><tr>
-    <th>Kịch bản Trip / Nguyên nhân</th><th>SIF</th><th>Cấp Dừng</th><th>Van FG-1/2</th><th>FG Depress</th><th>Quạt 88BA</th><th>Process &amp; BDV Flare</th>
+    <th>Trip Scenario / Initiating Cause</th><th>SIF</th><th>Shutdown Tier</th><th>Fuel FG-1/2</th><th>FG Depress</th><th>88BA Fans</th><th>Process &amp; BDV Flare</th>
   </tr></thead><tbody>`;
   CE_SCENARIOS.forEach((r, idx) => {
     const cls = ceActiveScenario === idx ? 'ce-row-btn ce-row-active' : 'ce-row-btn';
@@ -3124,9 +3124,9 @@ function renderCeMatrix() {
   });
 
   html += `<div class="ce-filter-bar">
-    <input class="ce-input" type="text" value="${ceSearchTerm.replace(/"/g,'&quot;')}" placeholder="🔍 Tìm Tag / Cause / Effect (vd: BLOWDOWN, FG, 88BA, DAMPER, FIRE, VIBR, ESN, SEAL)..." oninput="setCeFilter(this.value)" />
+    <input class="ce-input" type="text" value="${ceSearchTerm.replace(/"/g,'&quot;')}" placeholder="🔍 Search Tag / Cause / Effect (e.g., BLOWDOWN, FG, 88BA, DAMPER, FIRE, VIBR, ESN, SEAL)..." oninput="setCeFilter(this.value)" />
     <select class="ctrl-select" onchange="setCeSubsystem(this.value)" style="font-size:10px;padding:3px 6px;">
-      ${subs.map(s => `<option value="${s}" ${ceSubFilter===s?'selected':''}>Hệ: ${s}</option>`).join('')}
+      ${subs.map(s => `<option value="${s}" ${ceSubFilter===s?'selected':''}>Sys: ${s}</option>`).join('')}
     </select>
     <div style="display:flex;gap:3px;flex-wrap:wrap;">
       <button class="btn btn-sm" onclick="reverseTraceFilter('BLOWDOWN')">Reverse: Blowdown</button>
@@ -3134,13 +3134,13 @@ function renderCeMatrix() {
       <button class="btn btn-sm" onclick="reverseTraceFilter('88BA')">Reverse: 88BA</button>
       <button class="btn btn-sm" onclick="reverseTraceFilter('DAMPER')">Reverse: Damper</button>
       <button class="btn btn-sm" onclick="reverseTraceFilter('ESN')">Reverse: ESN</button>
-      <button class="btn btn-sm" onclick="setCeFilter('')">Xóa lọc</button>
+      <button class="btn btn-sm" onclick="setCeFilter('')">Clear</button>
     </div>
   </div>`;
 
-  html += `<div style="font-size:10px;color:#93c5fd;">Tìm thấy <b>${filtered.length}</b> / ${MEC002_DATA.ceFullDb.length} quy luật SOM896292590 R6 (Hiển thị tối đa 100 hàng đầu):</div>`;
+  html += `<div style="font-size:10px;color:#93c5fd;">Found <b>${filtered.length}</b> / ${MEC002_DATA.ceFullDb.length} SOM896292590 R6 rules (Showing top 100 matches):</div>`;
   html += `<table class="ce-db-table"><thead><tr>
-    <th style="width:42px;">Sh</th><th style="width:88px;">Hệ thống</th><th style="width:110px;">Tag / BH</th><th>Nguyên nhân (Cause)</th><th>Tác động C&amp;E (Effects &amp; Actions)</th>
+    <th style="width:42px;">Sh</th><th style="width:88px;">System</th><th style="width:110px;">Tag / BH</th><th>Initiating Cause</th><th>C&amp;E Actions &amp; Interlocks</th>
   </tr></thead><tbody>`;
   filtered.slice(0, 100).forEach(r => {
     const actsTxt = (r.acts || []).join(' · ');
@@ -3156,8 +3156,8 @@ function renderCeMatrix() {
   html += `</tbody></table>`;
 
   // Section C: 15 SIF SIL 2 Reference
-  html += `<div style="font-size:10.5px;font-weight:700;color:#c084fc;margin-top:4px;">🛡 15 VÒNG BẢO VỆ SIF (SIL 2 — MKVIeS + YSIL) &amp; PNOZ-S4 (SIL 3)</div>`;
-  html += `<table class="ce-db-table"><thead><tr><th>SIF</th><th>SIL</th><th>Chức năng bảo vệ</th><th>Cảm biến &amp; Voting</th><th>Ngưỡng &amp; Đáp ứng</th></tr></thead><tbody>`;
+  html += `<div style="font-size:10.5px;font-weight:700;color:#c084fc;margin-top:4px;">🛡 15 SAFETY INSTRUMENTED FUNCTIONS (SIL 2 — MKVIeS + YSIL) &amp; PNOZ-S4 (SIL 3)</div>`;
+  html += `<table class="ce-db-table"><thead><tr><th>SIF</th><th>SIL</th><th>Safety Function</th><th>Sensors &amp; Voting</th><th>Setpoints &amp; Final Action</th></tr></thead><tbody>`;
   MEC002_DATA.sifLoops.forEach(s => {
     html += `<tr><td style="color:#c084fc;font-weight:700;">${s.id}</td><td style="color:#86efac;">${s.sil}</td><td>${s.name}</td><td style="font-family:var(--mono);font-size:8.8px;">${s.tags} (${s.vote})</td><td style="font-size:9px;">${s.th} → <b>${s.act}</b></td></tr>`;
   });
@@ -3182,8 +3182,8 @@ function renderFaultLab() {
   const wrap = document.getElementById('faultLabWrap');
   if (!wrap) return;
   let html = `<div style="display:flex;justify-content:space-between;align-items:center;">
-    <strong style="color:#fca5a5;font-size:11.5px;">🔥 BÀI TẬP XỬ LÝ SỰ CỐ &amp; CAUSE-EFFECT (6 KỊCH BẢN CHUẨN VBGP)</strong>
-    <button class="btn btn-sm btn-cyan" onclick="resetSystem(true)">↻ Phục hồi Toàn trạm (On-Load)</button>
+    <strong style="color:#fca5a5;font-size:11.5px;">🔥 FAULT &amp; CAUSE-EFFECT SIMULATOR EXERCISES (6 VBGP SCENARIOS)</strong>
+    <button class="btn btn-sm btn-cyan" onclick="resetSystem(true)">↻ Restore Unit (On-Load)</button>
   </div>`;
   MEC002_DATA.faultChallenges.forEach(ch => {
     const isAct = SIM.activeFault === ch.id;
@@ -3196,10 +3196,10 @@ function renderFaultLab() {
           <span class="badge-pill" style="background:${bCol}33;border-color:${bCol};color:#fff;margin-right:5px;">${ch.code} · ${ch.severity}</span>
           <span class="fault-title">${ch.title}</span>
         </div>
-        <button class="btn btn-sm ${isAct?'btn-amber':'btn-red'}" onclick="triggerFault('${ch.id}')">${isDone?'✅ Chạy lại':(isAct?'🔥 Đang kích hoạt':'⚡ Kích hoạt Lỗi')}</button>
+        <button class="btn btn-sm ${isAct?'btn-amber':'btn-red'}" onclick="triggerFault('${ch.id}')">${isDone?'✅ Re-Run':(isAct?'🔥 Fault Active':'⚡ Inject Fault')}</button>
       </div>
       <div class="fault-desc">${ch.desc}</div>
-      <div class="fault-guide"><b>Cơ chế C&amp;E:</b> ${ch.mechanism}<br/><b>Nhiệm vụ Operator:</b> ${ch.task}</div>
+      <div class="fault-guide"><b>C&amp;E Logic:</b> ${ch.mechanism}<br/><b>Operator Action:</b> ${ch.task}</div>
     </div>`;
   });
   wrap.innerHTML = html;
@@ -3304,8 +3304,8 @@ function buildCompDetailInner(c) {
       <table class="spec-table">${c.specs.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('')}</table>
       <div class="warn-box" style="margin-top:8px;">⚠ ${c.warnings[0]}</div>
       <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">
-        <button class="btn btn-sm btn-cyan" onclick="activateGuidedCase('${c.relatedCase}')">📖 Xem Case ${c.relatedCase}</button>
-        <button class="btn btn-sm btn-amber" onclick="reverseTraceFilter('${c.reverseKeys[0]}')">🔍 Tra ngược C&amp;E (${c.reverseKeys[0]})</button>
+        <button class="btn btn-sm btn-cyan" onclick="activateGuidedCase('${c.relatedCase}')">📖 Guided Case ${c.relatedCase}</button>
+        <button class="btn btn-sm btn-amber" onclick="reverseTraceFilter('${c.reverseKeys[0]}')">🔍 Reverse C&amp;E (${c.reverseKeys[0]})</button>
       </div>`;
 }
 
@@ -3335,11 +3335,11 @@ function selectComponent(id, silent = false) {
     ed.innerHTML = `<div class="ed-hdr"><div><h4>${c.name}</h4><span>${c.tag} · ${c.pidSheet}</span></div>
       <button class="btn btn-sm" onclick="closeEquipDrawer()">✕</button></div>
       <div class="ed-body">
-        <div class="ed-sec-title">Vai trò thiết bị</div>
+        <div class="ed-sec-title">Equipment Role</div>
         <div class="ed-role">${c.role}</div>
-        <div class="ed-sec-title">Đặc tính kỹ thuật &amp; Cấu tạo 3D</div>
+        <div class="ed-sec-title">Technical Design &amp; 3D Anatomy</div>
         <ul class="ed-list">${c.features.map(f => `<li>${f}</li>`).join('')}</ul>
-        <div class="ed-sec-title">Liên động Cause &amp; Effect</div>
+        <div class="ed-sec-title">Cause &amp; Effect Interlocks</div>
         <div class="ed-ce"><b style="color:#fca5a5;">Cause:</b> ${c.ceLinks.cause}<br/><b style="color:#fde68a;">Effect:</b> ${c.ceLinks.effect}</div>
         <table class="spec-table">${c.specs.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('')}</table>
         <div class="warn-box">⚠ ${c.warnings[0]}</div>
@@ -3358,14 +3358,14 @@ function renderAuxEquipList() {
   const listEl = document.getElementById('auxEquipList');
   if (!listEl) return;
   const rows = [
-    ['PM1A', 'Bơm Dầu MLO A (PM-1101A-04 · 100%)'],
-    ['PM1B', 'Bơm Dầu MLO B (Stand-by)'],
-    ['EM1A', 'Quạt MLO Cooler 1 (EM-1101A-01 · 50%)'],
-    ['EM1B', 'Quạt MLO Cooler 2 (EM-1101B-01 · 50%)'],
-    ['EM1C', 'Quạt MLO Cooler 3 (Aux ≥55°C · 50%)'],
-    ['FANM1A', 'Quạt Thông gió Vỏ GT 1 (88BA-1 · 100%)'],
-    ['FANM1B', 'Quạt Thông gió Vỏ GT 2 (88BA-2 · 100%)'],
-    ['BOOSTER', 'Máy nén Seal Gas Booster (CM-1101-01)']
+    ['PM1A', 'Main MLO Pump A (PM-1101A-04 · 100%)'],
+    ['PM1B', 'Standby MLO Pump B (PM-1101B-04)'],
+    ['EM1A', 'MLO Air Cooler Fan 1 (EM-1101A-01 · 50%)'],
+    ['EM1B', 'MLO Air Cooler Fan 2 (EM-1101B-01 · 50%)'],
+    ['EM1C', 'MLO Air Cooler Fan 3 (Aux ≥55°C · 50%)'],
+    ['FANM1A', 'GT Encl Vent Fan 1 (88BA-1 · 100%)'],
+    ['FANM1B', 'GT Encl Vent Fan 2 (88BA-2 · 100%)'],
+    ['BOOSTER', 'Seal Gas Booster Comp (CM-1101-01)']
   ];
   listEl.innerHTML = rows.map(([k, lbl]) => {
     const st = SIM.equip[k] || 'STOP';
@@ -3455,122 +3455,122 @@ function updateUI(dt) {
    ============================================================================ */
 const GUIDED_CASES = {
   OP1: {
-    id: 'OP1', title: 'OP-1: Quy trình Khởi động Depressurized (N₂ → Gas → Crank → MOS)',
+    id: 'OP1', title: 'OP-1: Depressurized Startup Sequence (N₂ → Gas → Crank → MOS)',
     comps: ['waterWash', 'lm2500gg', 'fuelSkid', 'compressor'],
     links3d: [['fuelSkid', 'lm2500gg', 0x22c55e], ['lm2500gg', 'lm2500pt', 0xf97316], ['gearbox', 'compressor', 0x38bdf8]],
     nodes: [
-      { b: 'CAUSE', cls: 'ce-b-cause', t: 'Bấm ▶ Start (Depressurized Init)', fn: () => SIM.state !== 'OFF' },
-      { b: 'LOGIC', cls: 'ce-b-logic', t: 'Step 1-2: Purge N₂ + Gas (~3-6b) · Mở 100% ASV-1/2', fn: () => ['CRANK_PURGE','IGNITION','IDLE_WARMUP','ACCEL_MOS','ON_LOAD'].includes(SIM.state) },
-      { b: 'EFFECT', cls: 'ce-b-effect', t: 'HSS P-1101-10: Free Rotor ≥40rpm → Crank 2,250 → Ignition 1,650', fn: () => SIM.ngg >= 1650 && SIM.t48 > 220 },
+      { b: 'CAUSE', cls: 'ce-b-cause', t: 'Click ▶ Start (Depressurized Init)', fn: () => SIM.state !== 'OFF' },
+      { b: 'LOGIC', cls: 'ce-b-logic', t: 'Step 1-2: N₂ + Process Gas Purge (~3-6b) · Open ASV-1/2 100%', fn: () => ['CRANK_PURGE','IGNITION','IDLE_WARMUP','ACCEL_MOS','ON_LOAD'].includes(SIM.state) },
+      { b: 'EFFECT', cls: 'ce-b-effect', t: 'HSS P-1101-10: Free Rotor ≥40rpm → Crank 2,250 → Ignit 1,650', fn: () => SIM.ngg >= 1650 && SIM.t48 > 220 },
       { b: 'ACTION', cls: 'ce-b-action', t: 'Idle 6,800 (SLO ≥32.2°C) → MOS 6,535 → On-Load 9,321 rpm', fn: () => SIM.state === 'ON_LOAD' }
     ],
     run: () => { resetSystem(true); cmdStartSequence(); setCameraPreset('overview'); setDcsTab('gt'); }
   },
   OP2: {
-    id: 'OP2', title: 'OP-2: Antisurge Recycle (UCV-1101/1501-01) & Hot Gas Bypass',
+    id: 'OP2', title: 'OP-2: Dual Antisurge Control (UCV-1101/1501-01) & Hot Gas Bypass',
     comps: ['compressor', 'processGas'],
     links3d: [['compressor', 'processGas', 0xfacc15], ['processGas', 'compressor', 0x38bdf8]],
     nodes: [
-      { b: 'CAUSE', cls: 'ce-b-cause', t: 'Nghẽn van đẩy → OP1/OP2 vượt SCL (90%) tiến tới SLL (100%)', fn: () => SIM.op1 > 85 || SIM.asv1Pos > 10 },
-      { b: 'LOGIC', cls: 'ce-b-logic', t: 'Thuật toán Antisurge UY-1101/1501 tính (Pd/Ps) vs √(hs/Ps)', fn: () => SIM.asv1Pos > 5 },
-      { b: 'EFFECT', cls: 'ce-b-effect', t: 'Mở nhanh van tuần hoàn ASV-1 (UCV-1101-01) & ASV-2 giữ an toàn', fn: () => SIM.asv1Pos > 15 },
-      { b: 'ACTION', cls: 'ce-b-action', t: '3 chu kỳ Surge trong 60s → MKVIe tự động kích hoạt Trip ES bảo vệ cánh!', fn: () => SIM.state.includes('ES') }
+      { b: 'CAUSE', cls: 'ce-b-cause', t: 'Discharge Choke → OP1/OP2 exceeds SCL (90%) toward SLL (100%)', fn: () => SIM.op1 > 85 || SIM.asv1Pos > 10 },
+      { b: 'LOGIC', cls: 'ce-b-logic', t: 'Antisurge UY-1101/1501 evaluates (Pd/Ps) vs √(hs/Ps)', fn: () => SIM.asv1Pos > 5 },
+      { b: 'EFFECT', cls: 'ce-b-effect', t: 'Fast-opening recycle valves ASV-1 (UCV-1101-01) & ASV-2 stabilize flow', fn: () => SIM.asv1Pos > 15 },
+      { b: 'ACTION', cls: 'ce-b-action', t: '3 Surge cycles within 60s → MKVIe triggers ES Trip to protect impellers!', fn: () => SIM.state.includes('ES') }
     ],
     run: () => { forceOnLoadState(); cmdSurgePulse(); setCameraPreset('process'); setDcsTab('process'); }
   },
   OP3: {
-    id: 'OP3', title: 'OP-3: WHRU Diverter Damper & Liên động Purge SIF.05 (14m / 16m)',
+    id: 'OP3', title: 'OP-3: WHRU Diverter Damper & SIF.05 Purge Interlock (14m / 16m)',
     comps: ['lm2500pt', 'ucp'],
     links3d: [['lm2500pt', 'ucp', 0xf59e0b]],
     nodes: [
-      { b: 'CAUSE', cls: 'ce-b-cause', t: 'Chuyển van chia khí thải Bypass (ZSO-15) ↔ WHRU Duct (ZSO-16)', fn: () => SIM.whruMode === 'WHRU' },
-      { b: 'LOGIC', cls: 'ce-b-logic', t: 'SIF.05: GG > 2,250 rpm & FG-1/2 kín & Bypass Open mới đếm T2=14m', fn: () => SIM.ngg > 2000 },
-      { b: 'EFFECT', cls: 'ce-b-effect', t: 'Cảnh giới: Mất Bypass lúc đang Purge -> Reset 14 phút về 0!', fn: () => true },
-      { b: 'ACTION', cls: 'ce-b-action', t: 'Khi chạy On-Load: Có thể chuyển WHRU thu hồi nhiệt an toàn.', fn: () => SIM.whruMode === 'WHRU' }
+      { b: 'CAUSE', cls: 'ce-b-cause', t: 'Switch Diverter Damper Bypass (ZSO-15) ↔ WHRU Duct (ZSO-16)', fn: () => SIM.whruMode === 'WHRU' },
+      { b: 'LOGIC', cls: 'ce-b-logic', t: 'SIF.05: GG > 2,250 rpm & FG-1/2 closed & Bypass Open for T2=14m', fn: () => SIM.ngg > 2000 },
+      { b: 'EFFECT', cls: 'ce-b-effect', t: 'Caution: Losing Bypass feedback during Purge resets 14-min timer to zero!', fn: () => true },
+      { b: 'ACTION', cls: 'ce-b-action', t: 'While ON-LOAD: Diverter transitions smoothly to WHRU heat recovery.', fn: () => SIM.whruMode === 'WHRU' }
     ],
     run: () => { forceOnLoadState(); cmdToggleWhru(); setCameraPreset('gt'); setDcsTab('gt'); }
   },
   OP4: {
-    id: 'OP4', title: 'OP-4: Normal Shutdown (SD) — Đóng SDV Giữ Áp & Slow Turning 100 rpm',
+    id: 'OP4', title: 'OP-4: Normal Shutdown (SD) — Pressurized Hold & Slow Turning 100 rpm',
     comps: ['lm2500gg', 'compressor', 'fuelSkid'],
     links3d: [['ucp', 'fuelSkid', 0x22c55e], ['compressor', 'processGas', 0x38bdf8]],
     nodes: [
-      { b: 'CAUSE', cls: 'ce-b-cause', t: 'Bấm ■ Stop (SD) — Dừng chủ động không sự cố', fn: () => SIM.state === 'NORMAL_SD' },
-      { b: 'LOGIC', cls: 'ce-b-logic', t: 'Giảm tải -> Chạy không tải làm mát -> Đóng van FG-1/2', fn: () => !SIM.fg1Open },
-      { b: 'EFFECT', cls: 'ce-b-effect', t: 'Đóng SDV hút/đẩy & GIỮ ÁP (KHÔNG mở Flare BDV!) -> Slow Turn 100 rpm', fn: () => !SIM.bdvOpen && SIM.equip.SLOW === 'RUN' },
-      { b: 'ACTION', cls: 'ce-b-action', t: 'Duy trì Pony Motor 88HR-1 quay 4 giờ chống cong trục nhiệt GG.', fn: () => SIM.equip.SLOW === 'RUN' }
+      { b: 'CAUSE', cls: 'ce-b-cause', t: 'Click ■ Stop (SD) — Controlled Normal Unload & Stop', fn: () => SIM.state === 'NORMAL_SD' },
+      { b: 'LOGIC', cls: 'ce-b-logic', t: 'Unload -> Cooldown at Idle -> Close Fuel DBB Valves FG-1/2', fn: () => !SIM.fg1Open },
+      { b: 'EFFECT', cls: 'ce-b-effect', t: 'Close Suct/Disch SDVs PRESSURIZED HOLD (BDVs CLOSED!) -> Slow Turn 100 rpm', fn: () => !SIM.bdvOpen && SIM.equip.SLOW === 'RUN' },
+      { b: 'ACTION', cls: 'ce-b-action', t: 'Pony Motor 88HR-1 rotates shaft 4h to prevent GG thermal bowing.', fn: () => SIM.equip.SLOW === 'RUN' }
     ],
     run: () => { forceOnLoadState(); cmdNormalShutdown(); setCameraPreset('overview'); setDcsTab('gt'); }
   },
   CH1: {
-    id: 'CH1', title: 'CH-1: Rò Gas 10% LEL (SIF.08) — ESN + FG Depress NHƯNG GIỮ QUẠT 88BA!',
+    id: 'CH1', title: 'CH-1: Gas Leak 10% LEL (SIF.08) — ESN + FG Depress WHILE KEEPING 88BA FANS!',
     comps: ['enclosure', 'fuelSkid', 'ucp'],
     links3d: [['enclosure', 'ucp', 0xef4444], ['ucp', 'fuelSkid', 0xef4444]],
     nodes: [
-      { b: 'CAUSE', cls: 'ce-b-cause', t: 'Đầu dò khí GD-1101A/B/C-02 ≥ 10% LEL (2oo3 HH)', fn: () => SIM.gasLel >= 10 },
-      { b: 'LOGIC', cls: 'ce-b-logic', t: 'MKVIeS SIF.08 cắt 2 cực P/N van Fuel FG-1/2 + 20FB/FV-1', fn: () => !SIM.fg1Open },
-      { b: 'EFFECT', cls: 'ce-b-effect', t: 'Kích hoạt ESN (No Motoring) + Xả N₂ đường FG NHƯNG GIỮ 88BA-1 CHẠY!', fn: () => SIM.equip.FANM1A === 'RUN' && SIM.fgDepressActive },
-      { b: 'ACTION', cls: 'ce-b-action', t: 'Khí xanh giảm < 2% LEL -> Ack All -> Reset.', fn: () => !!SIM.solvedFaults.CH1 }
+      { b: 'CAUSE', cls: 'ce-b-cause', t: 'Outlet Gas Detectors GD-1101A/B/C-02 ≥ 10% LEL (2oo3 HH)', fn: () => SIM.gasLel >= 10 },
+      { b: 'LOGIC', cls: 'ce-b-logic', t: 'MKVIeS SIF.08 cuts dual +P/-N poles on FG-1/2 + 20FB/FV-1', fn: () => !SIM.fg1Open },
+      { b: 'EFFECT', cls: 'ce-b-effect', t: 'Executes ESN (No Motoring) + N₂ FG Purge WHILE KEEPING 88BA-1 ON!', fn: () => SIM.equip.FANM1A === 'RUN' && SIM.fgDepressActive },
+      { b: 'ACTION', cls: 'ce-b-action', t: 'Wait for enclosure gas mist < 2% LEL -> Ack All -> Reset.', fn: () => !!SIM.solvedFaults.CH1 }
     ],
     run: () => triggerFault('CH1')
   },
   CH2: {
-    id: 'CH2', title: 'CH-2: Mất Chênh Áp Thông Gió Vỏ (SIF.07 · Timer 30s → ES)',
+    id: 'CH2', title: 'CH-2: Loss of Enclosure Ventilation ΔP (SIF.07 · 30s Timer → ES)',
     comps: ['enclosure', 'ucp'],
     links3d: [['enclosure', 'ucp', 0xf59e0b]],
     nodes: [
-      { b: 'CAUSE', cls: 'ce-b-cause', t: 'Quạt 88BA-1 Trip → PDIT-1101A/B-17 rơi < LL', fn: () => SIM.equip.FANM1A === 'TRIP' },
-      { b: 'LOGIC', cls: 'ce-b-logic', t: 'Sau khi Purge, MKVIeS chạy Timer trễ 30s chờ quạt dự phòng 88BA-2', fn: () => SIM.ventDelayTimer > 0 },
-      { b: 'EFFECT', cls: 'ce-b-effect', t: 'Nếu hết 30s chưa khôi phục ΔP -> Cắt ES + FG Depressurization!', fn: () => SIM.state.includes('ES') },
-      { b: 'ACTION', cls: 'ce-b-action', t: 'Operator bật FANM-1101B-01 (88BA-2) kịp trước 0s -> Cứu máy!', fn: () => !!SIM.solvedFaults.CH2 }
+      { b: 'CAUSE', cls: 'ce-b-cause', t: 'Fan 88BA-1 Trips → PDIT-1101A/B-17 falls below LL', fn: () => SIM.equip.FANM1A === 'TRIP' },
+      { b: 'LOGIC', cls: 'ce-b-logic', t: 'Post-purge MKVIeS starts 30s delay waiting for Standby 88BA-2', fn: () => SIM.ventDelayTimer > 0 },
+      { b: 'EFFECT', cls: 'ce-b-effect', t: 'If ΔP unrecovered by 0s -> Initiates ES + FG Depressurization!', fn: () => SIM.state.includes('ES') },
+      { b: 'ACTION', cls: 'ce-b-action', t: 'Operator starts FANM-1101B-01 (88BA-2) before timeout -> Saved!', fn: () => !!SIM.solvedFaults.CH2 }
     ],
     run: () => triggerFault('CH2')
   },
   CH3: {
-    id: 'CH3', title: 'CH-3: Trip Quạt MLO Cooler EM-1101A-01 → Quá Nhiệt Dầu Hộp Số',
+    id: 'CH3', title: 'CH-3: MLO Air Cooler Fan Trip EM-1101A-01 → Gearbox/Compressor Oil Hi',
     comps: ['lubeCooler', 'lubeConsole', 'gearbox'],
     links3d: [['lubeCooler', 'lubeConsole', 0xf59e0b], ['lubeConsole', 'gearbox', 0xf59e0b]],
     nodes: [
-      { b: 'CAUSE', cls: 'ce-b-cause', t: 'Quạt Cooler EM-1101A-01 Trip rung VS-1101-02 (chỉ còn 1 quạt 50%)', fn: () => SIM.equip.EM1A === 'TRIP' },
-      { b: 'LOGIC', cls: 'ce-b-logic', t: 'Lufkin (560 kW loss) + 2BCL cần ≥ 2 quạt 50%. MLO vọt lên 70→76°C!', fn: () => SIM.mloTemp >= 60 },
-      { b: 'EFFECT', cls: 'ce-b-effect', t: 'Nếu Mean TIT-1101-05/06 đạt HH (76°C) -> Trip ES bảo vệ ổ trục', fn: () => SIM.mloTemp >= 76 },
-      { b: 'ACTION', cls: 'ce-b-action', t: 'Bật quạt EM-1101C-01 (Aux) kéo MLO < 60°C + Ack All.', fn: () => !!SIM.solvedFaults.CH3 }
+      { b: 'CAUSE', cls: 'ce-b-cause', t: 'Cooler Fan EM-1101A-01 trips VS-1101-02 (down to single 50% fan)', fn: () => SIM.equip.EM1A === 'TRIP' },
+      { b: 'LOGIC', cls: 'ce-b-logic', t: 'Lufkin (560 kW loss) + 2BCL require ≥ 2×50% fans. Temp ramps 70→76°C!', fn: () => SIM.mloTemp >= 60 },
+      { b: 'EFFECT', cls: 'ce-b-effect', t: 'When Mean TIT-1101-05/06 reaches HH (76°C) -> ES Trip protects bearings', fn: () => SIM.mloTemp >= 76 },
+      { b: 'ACTION', cls: 'ce-b-action', t: 'Engage Aux Fan EM-1101C-01 to cool MLO < 60°C + Ack All.', fn: () => !!SIM.solvedFaults.CH3 }
     ],
     run: () => triggerFault('CH3')
   },
   CH4: {
-    id: 'CH4', title: 'CH-4: Vỡ Phớt Khí Khô DGS Primary Vent HH → ESN WITH VENT (XẢ FLARE!)',
+    id: 'CH4', title: 'CH-4: DGS Primary Vent Rupture HH → ESN WITH VENT (FLARE BLOWDOWN!)',
     comps: ['dgs', 'compressor', 'processGas', 'fuelSkid'],
     links3d: [['dgs', 'compressor', 0xef4444], ['compressor', 'processGas', 0xef4444]],
     nodes: [
-      { b: 'CAUSE', cls: 'ce-b-cause', t: 'Phớt GASPAC-L-55 DE hỏng -> Primary Vent PIT-1101-19 vượt HH!', fn: () => SIM.dgsVentPress >= 5 },
-      { b: 'LOGIC', cls: 'ce-b-logic', t: 'C&E Sheet 24: Bắt buộc cấp cao nhất ESN WITH VENT!', fn: () => SIM.state === 'ESN_VENT' },
-      { b: 'EFFECT', cls: 'ce-b-effect', t: 'Cắt Fuel GT (ESN) + Đóng SDVs + MỞ LOẠT BDV-1103/1501A/B XẢ FLARE!', fn: () => SIM.bdvOpen },
-      { b: 'ACTION', cls: 'ce-b-action', t: 'Áp suất 2BCL tụt từ 141 barg về 0.5 barg -> Ack + Reset.', fn: () => !!SIM.solvedFaults.CH4 }
+      { b: 'CAUSE', cls: 'ce-b-cause', t: 'GASPAC-L-55 DE Primary Seal fails -> PIT-1101-19 spikes HH!', fn: () => SIM.dgsVentPress >= 5 },
+      { b: 'LOGIC', cls: 'ce-b-logic', t: 'C&E Sheet 24: Forces highest shutdown tier ESN WITH VENT!', fn: () => SIM.state === 'ESN_VENT' },
+      { b: 'EFFECT', cls: 'ce-b-effect', t: 'Cuts Fuel (ESN) + Closes SDVs + OPENS BDV-1103/1501A/B TO FLARE!', fn: () => SIM.bdvOpen },
+      { b: 'ACTION', cls: 'ce-b-action', t: '2BCL pressure blows down from 141 barg to 0.5 barg -> Ack + Reset.', fn: () => !!SIM.solvedFaults.CH4 }
     ],
     run: () => triggerFault('CH4')
   },
   CH5: {
-    id: 'CH5', title: 'CH-5: Cháy Khoang GT (IR3 + Heat) → Đóng Damper → 30s → Water Mist!',
+    id: 'CH5', title: 'CH-5: GT Enclosure Fire (IR3 + Heat) → Close Dampers → 30s → Water Mist!',
     comps: ['firegas', 'enclosure', 'fuelSkid'],
     links3d: [['enclosure', 'firegas', 0xef4444], ['firegas', 'enclosure', 0x38bdf8]],
     nodes: [
-      { b: 'CAUSE', cls: 'ce-b-cause', t: '2oo2 IR3 BE-1101A/B-01 + TD-1101 xác nhận cháy khoang LM2500+G4!', fn: () => SIM.fireDetected || SIM.waterMistActive },
-      { b: 'LOGIC', cls: 'ce-b-logic', t: 'ESN + FG Depress + CẮT QUẠT 88BA-1/2 + ĐÓNG DAMPER XV-1101-12!', fn: () => !SIM.dampersOpen },
-      { b: 'EFFECT', cls: 'ce-b-effect', t: 'Đếm 30s Pre-Discharge còi/đèn XA-1101 -> Mở 12xH₂O + 4xN₂ Water Mist!', fn: () => SIM.waterMistActive },
-      { b: 'ACTION', cls: 'ce-b-action', t: 'Sương áp lực 200 barg dập tắt cháy -> Ack All + Reset.', fn: () => !!SIM.solvedFaults.CH5 }
+      { b: 'CAUSE', cls: 'ce-b-cause', t: '2oo2 IR3 BE-1101A/B-01 + TD-1101 confirm fire inside LM2500+G4 enclosure!', fn: () => SIM.fireDetected || SIM.waterMistActive },
+      { b: 'LOGIC', cls: 'ce-b-logic', t: 'ESN + FG Depress + CUT 88BA-1/2 FANS + CLOSE DAMPERS XV-1101-12!', fn: () => !SIM.dampersOpen },
+      { b: 'EFFECT', cls: 'ce-b-effect', t: '30s Pre-Discharge beacon XA-1101 -> Releases 12xH₂O + 4xN₂ Water Mist!', fn: () => SIM.waterMistActive },
+      { b: 'ACTION', cls: 'ce-b-action', t: '200 barg Water Mist extinguishes fire -> Ack All + Reset.', fn: () => !!SIM.solvedFaults.CH5 }
     ],
     run: () => triggerFault('CH5')
   },
   CH6: {
-    id: 'CH6', title: 'CH-6: Rung Bently Nevada Orbit 60 (2oo4) & Khóa Quá Tốc YSIL S3',
+    id: 'CH6', title: 'CH-6: Orbit 60 Vibration (2oo4) & YSIL S3 Overspeed Lockout',
     comps: ['compressor', 'gearbox', 'ucp'],
     links3d: [['compressor', 'ucp', 0xf59e0b], ['gearbox', 'ucp', 0xef4444]],
     nodes: [
-      { b: 'CAUSE', cls: 'ce-b-cause', t: 'Orbit 60 VSHH-355 (2BCL > 70 µm) hoặc Quá tốc S3 YSIL (10,643 GG)', fn: () => SIM.vibComp > 70 || SIM.ysilLockout },
-      { b: 'LOGIC', cls: 'ce-b-logic', t: 'SIF.13 Voting 2oo4: 1oo4 HH + (1oo4 H/F) -> Cut Fuel ES (PT>300 rpm)', fn: () => SIM.state.includes('ES') },
-      { b: 'EFFECT', cls: 'ce-b-effect', t: 'Nếu kích hoạt YSIL S3 Lockout -> Nút Reset thường BỊ KHÓA!', fn: () => true },
-      { b: 'ACTION', cls: 'ce-b-action', t: 'Dùng nút "BH YSIL Unlock" trên Alarm Summary để mở khóa.', fn: () => !!SIM.solvedFaults.CH6 }
+      { b: 'CAUSE', cls: 'ce-b-cause', t: 'Orbit 60 VSHH-355 (2BCL > 70 µm) or YSIL S3 Overspeed (10,643 GG)', fn: () => SIM.vibComp > 70 || SIM.ysilLockout },
+      { b: 'LOGIC', cls: 'ce-b-logic', t: 'SIF.13 2oo4 Voting: 1oo4 HH + (1oo4 H/F) -> Cut Fuel ES (PT>300 rpm)', fn: () => SIM.state.includes('ES') },
+      { b: 'EFFECT', cls: 'ce-b-effect', t: 'YSIL S3 Lockout inhibits standard Operator Safety Reset!', fn: () => true },
+      { b: 'ACTION', cls: 'ce-b-action', t: 'Click "BH YSIL Unlock" on Alarm Summary panel to clear latch.', fn: () => !!SIM.solvedFaults.CH6 }
     ],
     run: () => triggerFault('CH6')
   }
@@ -3598,8 +3598,8 @@ function showCaseGuideOnly(id) {
       `<div class="ce-node" id="cgn-${idx}"><span class="ce-badge ${n.cls}">${n.b}</span><span>${n.t}</span></div>`
     ).join('')}</div>
     <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:2px;">
-      <button class="btn btn-sm btn-amber" onclick="GUIDED_CASES['${id}'].run()">▶ Chạy lại kịch bản</button>
-      <button class="btn btn-sm btn-cyan" onclick="setDcsTab('cematrix')">⚡ Mở Ma trận C&amp;E (426)</button>
+      <button class="btn btn-sm btn-amber" onclick="GUIDED_CASES['${id}'].run()">▶ Re-Run Scenario</button>
+      <button class="btn btn-sm btn-cyan" onclick="setDcsTab('cematrix')">⚡ Open C&amp;E Matrix (426)</button>
     </div>
   </div>`;
   updateCaseGuideLive();
@@ -3800,7 +3800,7 @@ window.addEventListener('DOMContentLoaded', () => {
   selectComponent('compressor', true);
   drawCharts();
   updateUI(0.3);
-  logEvent('🚀 Sẵn sàng Baker Hughes MEC002 Digital Twin (VBGP EPCI#1 — LM2500+G4 + Lufkin + 2BCL456/A, 426 Rules).');
+  logEvent('🚀 Baker Hughes MEC002 Digital Twin Ready (VBGP EPCI#1 — LM2500+G4 + Lufkin + 2BCL456/A, 426 Rules).');
 
   loadThreeWithFallback(ok => {
     if (ok) {
