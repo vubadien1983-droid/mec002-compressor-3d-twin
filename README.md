@@ -1,13 +1,8 @@
-# MEC002 · Production & Pipeline Compressor 3D Digital Twin
+# MEC002 · Production & Pipeline Compressor 3D Digital Twin (100% Offline Single-HTML)
 
-Interactive 3D & Baker Hughes MKVIe iHMI Digital Twin Simulator for **Vietnam Block B Gas Project (VBGP) EPCI #1 (CPPT)**:
-- **Units**: `CPPT-PK-1101` (Right Dismantling) & `CPPT-PK-2101` (Left Dismantling)
-- **Train Architecture**: `GE LM2500+G4 SAC` (17-stage CCW GG + 6-stage Free Power Turbine @ 3,600 rpm + WHRU Diverter Damper) → `Lufkin NF2219E` (1:2.594, ΔZ = 558.8 mm lateral offset, CCW→CW reversal) → `Baker Hughes 2BCL456/A` (Back-to-back 2×3 impellers, slide-out 7,237 kg rotor bundle, Tandem `GASPAC-L-55` Dry Gas Seal).
-- **Simulations**:
-  - Real-time multi-shaft speed/thermo/antisurge physics across Design Cases 1–5 (`E07-00001`).
-  - Live Dual Antisurge Maps `(Pd/Ps)` vs `√(hs/Ps)` showing SLL, SCL, and dynamic working point.
-  - Full 426-row searchable Cause & Effect Matrix (`SOM896292590 Rev 6`) + 15 SIF `SIL 2` + `SIL 3` PNOZ-S4 hardware trips (`ES`, `ESN`, `ESN_VENT`, `SD`).
-  - 10 Guided Operating & Fault Scenarios (`OP1–OP4`, `CH1–CH6`) with 3D Halo & Bezier Cause→Effect pulse links.
+Self-contained single-file 3D Cutaway & Baker Hughes MKVIe iHMI Digital Twin Simulator for **Vietnam Block B Gas Project (VBGP) EPCI #1 (CPPT)**:
+- **100% Offline Portable Architecture**: Includes inline `Three.js r128`, all **426 Cause & Effect matrix rules**, **15 SIL 2 SIFs**, and an **Offline Illustrated Engineering Instruction Manual (`📘 Instruction`)** with 14 high-resolution project CAD/GA/HMI figures embedded inside a single `.html` file (zero external CDN or extra asset files required).
+- **Full 50% Engineering Cutaways Across All 14 Assemblies**: Air Filter House, `GE LM2500+G4 SAC` (17-stage GG + Free PT + WHRU Diverter), `Lufkin NF2219E` Gearbox (1:2.594, ΔZ = 558.8 mm, CCW→CW), `2BCL456/A` Back-to-Back Barrel Compressor (7,237 kg slide-out rotor bundle), `Flowserve GASPAC-L-55` Tandem DGS + Conditioning Skid, Enclosure & `88BA-1/2` Fans, Water Mist `4×N₂ + 12×H₂O` Skid, Fuel Gas DBB Skid, MLO/SLO Consoles, Common `3×50%` Air Cooler, Process Scrubbers/Coolers/ASVs/Flare, Water Wash Cart, and `MKVIe / MKVIeS / Orbit 60` UCP.
 
-## Live Demo
-Open `index.html` directly in any modern WebGL browser (offline iHMI/C&E works without internet; 3D WebGL uses Three.js `r128` via CDN fallback).
+## Usage
+Double-click `index.html` (or `MEC002_LM2500_2BCL456_3D_DCS_DigitalTwin.html`) in any modern browser — works 100% offline or online via GitHub Pages.
