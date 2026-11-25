@@ -492,16 +492,19 @@ canvas.polar-canvas {
   flex-direction: column; text-align: center; padding: 24px; color: var(--muted); gap: 8px;
 }
 .instr-overlay {
-  position: fixed; inset: 0; z-index: 2000; background: rgba(5, 9, 17, 0.94);
+  position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 9999; background: #050911;
   backdrop-filter: blur(8px); display: flex; flex-direction: column;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.18s ease;
+}
+.instr-overlay:fullscreen, .instr-overlay:-webkit-full-screen {
+  width: 100vw; height: 100vh; background: #050911;
 }
 .instr-overlay.hidden { opacity: 0; pointer-events: none; visibility: hidden; }
 .instr-bar {
   height: 44px; flex-shrink: 0; background: #0f172a; border-bottom: 1px solid #334155;
-  display: flex; align-items: center; justify-content: space-between; padding: 0 14px; gap: 10px;
+  display: flex; align-items: center; justify-content: space-between; padding: 0 16px; gap: 10px;
 }
-.instr-frame { flex: 1; width: 100%; border: none; background: #0b1220; }
+.instr-frame { flex: 1; width: 100%; height: 100%; border: none; background: #080d17; display: block; }
 </style>
 </head>
 <body>
@@ -839,6 +842,7 @@ canvas.polar-canvas {
       <strong style="font-size:13px;color:#f8fafc;">Engineering Instruction &amp; System Reference Manual (On-Skid &amp; Off-Skid · 100% Offline)</strong>
     </div>
     <div style="display:flex;align-items:center;gap:6px;">
+      <button class="btn btn-sm" id="btnInstrFs" onclick="toggleInstructionFullscreen()" title="Toggle Browser Fullscreen (F11)">⛶ Fullscreen</button>
       <button class="btn btn-sm btn-cyan" onclick="popOutInstructionBlob()" title="Open as a standalone offline HTML browser tab (no temporary files created)">⤢ Open Standalone Tab</button>
       <button class="btn btn-sm btn-amber" onclick="printInstructionManual()" title="Print or Save as PDF">🖨 Print / PDF</button>
       <button class="btn btn-sm btn-red" onclick="closeInstructionManual()">✕ Close [Esc]</button>
@@ -4088,14 +4092,14 @@ function buildInstructionHtml() {
     font-size: 11.5px; margin-bottom: 2px; transition: background 0.12s, color 0.12s;
   }
   .nav-link:hover { background: rgba(56,189,248,0.16); color: #fff; }
-  .main { flex: 1; padding: 24px 32px 60px; max-width: 1180px; margin: 0 auto; }
+  .main { flex: 1; min-width: 0; width: 100%; max-width: none; padding: 20px 28px 60px; }
   .hero {
     background: linear-gradient(135deg, #0f1e36 0%, #0b1322 100%);
     border: 1px solid rgba(56,189,248,0.4); border-radius: 10px; padding: 20px 24px; margin-bottom: 24px;
   }
   .hero h1 { font-size: 21px; color: #f8fafc; margin-bottom: 6px; }
   .hero p { font-size: 12.5px; color: #cbd5e1; }
-  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 10px; margin-top: 14px; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-top: 14px; }
   .kpi-box { background: rgba(8,13,23,0.75); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; }
   .kpi-box span { display: block; font-size: 10px; color: var(--muted); text-transform: uppercase; }
   .kpi-box strong { font-family: var(--mono); font-size: 13.5px; color: var(--cyan); }
@@ -4335,11 +4339,53 @@ function filterDocs(q) {
     el.style.display = (!s || el.textContent.toLowerCase().includes(s)) ? '' : 'none';
   });
 }
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const lb = document.getElementById('lb');
+    if (lb && lb.classList.contains('open')) { lb.classList.remove('open'); return; }
+    if (window.parent && window.parent.closeInstructionManual) window.parent.closeInstructionManual();
+  }
+});
 ${closeScript}
 </body>
 </html>`;
 
   return _cachedManualHtml;
+}
+
+function updateInstrFsButton() {
+  const btn = document.getElementById('btnInstrFs');
+  if (!btn) return;
+  const ov = document.getElementById('instrOverlay');
+  const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+  const isFs = !!(fsEl && (fsEl === ov || fsEl === document.documentElement));
+  btn.textContent = isFs ? '⊠ Exit Fullscreen' : '⛶ Fullscreen';
+  btn.classList.toggle('active-toggle', isFs);
+}
+
+function enterInstructionFullscreen() {
+  const ov = document.getElementById('instrOverlay');
+  if (!ov) return;
+  try {
+    const req = ov.requestFullscreen || ov.webkitRequestFullscreen || ov.msRequestFullscreen;
+    if (req) Promise.resolve(req.call(ov)).then(updateInstrFsButton).catch(() => {});
+  } catch (e) {}
+}
+
+function exitInstructionFullscreen() {
+  try {
+    const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+    if (fsEl) {
+      const ex = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+      if (ex) Promise.resolve(ex.call(document)).then(updateInstrFsButton).catch(() => {});
+    }
+  } catch (e) {}
+}
+
+function toggleInstructionFullscreen() {
+  const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+  if (fsEl) exitInstructionFullscreen();
+  else enterInstructionFullscreen();
 }
 
 function openInstructionManual() {
@@ -4349,10 +4395,14 @@ function openInstructionManual() {
     frame.srcdoc = html;
     frame.setAttribute('data-loaded', '1');
   }
-  document.getElementById('instrOverlay').classList.remove('hidden');
+  const ov = document.getElementById('instrOverlay');
+  ov.classList.remove('hidden');
+  enterInstructionFullscreen();
+  updateInstrFsButton();
 }
 
 function closeInstructionManual() {
+  exitInstructionFullscreen();
   document.getElementById('instrOverlay').classList.add('hidden');
 }
 
@@ -4372,11 +4422,14 @@ function printInstructionManual() {
   }
 }
 
+document.addEventListener('fullscreenchange', updateInstrFsButton);
+document.addEventListener('webkitfullscreenchange', updateInstrFsButton);
 window.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeInstructionManual();
 });
 window.openInstructionManual = openInstructionManual;
 window.closeInstructionManual = closeInstructionManual;
+window.toggleInstructionFullscreen = toggleInstructionFullscreen;
 </script>
 </body>
 </html>
